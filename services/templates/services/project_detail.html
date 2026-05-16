@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="project-detail-wrapper py-5" style="background: var(--bg-main); min-height: 100vh;">
+    <div class="container py-4">
+        <div class="row g-5">
+            <!-- Project Main Info -->
+            <div class="col-lg-8">
+                <div class="agora-project-card p-5 mb-5 shadow-xl">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+                        <span class="budget-badge">
+                            {{ project.category.name|default:"Imperial Mission" }}
+                        </span>
+                        <div style="font-weight: 1000; color: #10b981; font-size: 2.2rem; letter-spacing: -1px;">
+                            {{ project.budget|floatformat:2 }} <span style="font-size: 1rem; font-weight: 800; opacity: 0.6;">EGP</span>
+                        </div>
+                    </div>
+                    
+                    <h1 style="font-weight: 1000; font-size: 4rem; color: var(--gray-900); margin-bottom: 2rem; letter-spacing: -2px; line-height: 1.1;">{{ project.title }}</h1>
+                    
+                    <div style="display: flex; gap: 3rem; margin-bottom: 3.5rem; opacity: 0.8; font-weight: 800; font-size: 1.1rem; color: var(--gray-500);">
+                        <span><i class="far fa-calendar-check" style="margin-right: 8px;"></i> {{ project.created_at|date:"M d, Y" }}</span>
+                        <span><i class="far fa-hourglass-half" style="margin-right: 8px;"></i> {{ project.delivery_days }} {% trans "Days Delivery" %}</span>
+                        <span><i class="far fa-user-circle" style="margin-right: 8px;"></i> {{ project.user.username }}</span>
+                    </div>
+                    
+                    <div style="font-size: 1.4rem; line-height: 2; color: var(--gray-700); white-space: pre-line;">
+                        {{ project.description }}
+                    </div>
+                </div>
+
+                <!-- Bids Section -->
+                {% if is_owner %}
+                    <h2 style="font-weight: 1000; font-size: 2.5rem; color: var(--gray-900); margin-bottom: 2.5rem; letter-spacing: -1px;">🛡️ {% trans "Imperial Proposals" %} ({{ bids.count }})</h2>
+                    {% for bid in bids %}
+                        <div class="bid-item-premium mb-4">
+                             <div style="position: absolute; top:0; right:0; padding: 0.8rem 1.8rem; background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 1000; font-size: 0.9rem; border-bottom-left-radius: 20px; text-transform: uppercase;">
+                                Offering #{{ forloop.counter }}
+                             </div>
+                            <div class="row align-items-center">
+                                <div class="col-md-2 text-center">
+                                    <div style="width: 75px; height: 75px; border-radius: 22px; background: linear-gradient(135deg, var(--primary), #4338ca); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 1000; margin: 0 auto; box-shadow: 0 12px 25px rgba(79, 70, 229, 0.35);">
+                                        {{ bid.provider.user.username|first|upper }}
+                                    </div>
+                                    <h5 style="font-weight: 1000; font-size: 1.1rem; margin-top: 1.2rem; color: var(--gray-800);">{{ bid.provider.user.username }}</h5>
+                                </div>
+                                <div class="col-md-7">
+                                    <p style="font-size: 1.3rem; line-height: 1.8; color: var(--gray-600); margin-bottom: 2rem; font-weight: 600;">{{ bid.message }}</p>
+                                    <div style="display: flex; gap: 2.5rem;">
+                                        <div style="background: rgba(0,0,0,0.04); padding: 0.8rem 1.6rem; border-radius: 12px; font-weight: 1000; color: var(--gray-900); font-size: 1.1rem;">
+                                            <i class="fas fa-coins" style="color: #f39c12; margin-right: 8px;"></i> {{ bid.price }} EGP
+                                        </div>
+                                        <div style="background: rgba(0,0,0,0.04); padding: 0.8rem 1.6rem; border-radius: 12px; font-weight: 1000; color: var(--gray-900); font-size: 1.1rem;">
+                                            <i class="fas fa-bolt" style="color: var(--primary); margin-right: 8px;"></i> {{ bid.delivery_days }} {% trans "Days" %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <form action="{% url 'award_bid' bid.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary w-100 py-4" style="border-radius: 20px; font-weight: 1000; font-size: 1.2rem; box-shadow: 0 15px 30px rgba(79, 70, 229, 0.3);">
+                                            {% trans "Award Contract" %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-5 opacity-40">
+                           <i class="fas fa-chess-knight fa-4x mb-4"></i>
+                           <p style="font-weight: 900; font-size: 1.3rem;">{% trans "The Imperial market awaits skilled craftsmen to submit their proposals." %}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Right Sidebar: Bid Form / Profile Stats -->
+            <div class="col-lg-4">
+                <div class="agora-project-card p-5 shadow-2xl" style="border-top: 8px solid var(--primary); position: sticky; top: 120px;">
+                    {% if can_bid %}
+                        <h3 style="font-weight: 1000; margin-bottom: 2rem; font-size: 2rem; letter-spacing: -1px;">📜 {% trans "Cast Your Bid" %}</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div style="display: grid; gap: 2rem;">
+                                <div>
+                                    <label style="font-weight: 1000; font-size: 0.9rem; opacity: 0.7; display: block; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">{% trans "Your Bid (EGP)" %}</label>
+                                    {{ form.price }}
+                                </div>
+                                <div>
+                                    <label style="font-weight: 1000; font-size: 0.9rem; opacity: 0.7; display: block; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">{% trans "Delivery Time (Days)" %}</label>
+                                    {{ form.delivery_days }}
+                                </div>
+                                <div>
+                                    <label style="font-weight: 1000; font-size: 0.9rem; opacity: 0.7; display: block; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">{% trans "Imperial Message" %}</label>
+                                    {{ form.message }}
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-4 mt-3" style="border-radius: 22px; font-weight: 1000; font-size: 1.3rem; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4);">
+                                    <i class="fas fa-chess-rook"></i> {% trans "Submit Sovereign Bid" %}
+                                </button>
+                            </div>
+                        </form>
+                    {% elif is_owner %}
+                        <div class="text-center py-4">
+                            <div style="font-size: 4rem; margin-bottom: 2rem;">👑</div>
+                            <h4 style="font-weight: 1000; margin-bottom: 1.5rem; font-size: 2.2rem; letter-spacing: -1.5px;">{% trans "Sovereign Overview" %}</h4>
+                            <p style="opacity: 0.7; font-weight: 700; font-size: 1.1rem; line-height: 1.8;">{% trans "Review each craftsman's proposal with royal precision. Award only to the most worthy." %}</p>
+                            <div style="margin-top: 3rem; padding: 2rem; background: rgba(79, 70, 229, 0.05); border-radius: 25px;">
+                                <div style="font-size: 0.9rem; font-weight: 1000; opacity: 0.5; text-transform: uppercase; margin-bottom: 0.5rem;">Current Count</div>
+                                <div style="font-size: 2.5rem; font-weight: 1000; color: var(--primary);">{{ bids.count }}</div>
+                                <div style="font-weight: 800; opacity: 0.8;">{% trans "Proposals" %}</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center alert alert-warning" style="border-radius: 20px; font-weight: 900;">
+                            {% if not user.is_authenticated %}
+                                <a href="{% url 'login' %}">{% trans "Log in to bid" %}</a>
+                            {% else %}
+                                {% trans "You have already bid or are not registered as a service provider." %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bid-card:hover { border-color: #10b981 !important; transform: translateX(10px); }
+.glass-card input, .glass-card textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border-radius: 18px !important;
+    background: rgba(0,0,0,0.03);
+    border: 2px solid rgba(0,0,0,0.05) !important;
+    font-weight: 700;
+}
+.glass-card input:focus, .glass-card textarea:focus {
+    background: white;
+    border-color: var(--primary) !important;
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+</style>
+{% endblock %}

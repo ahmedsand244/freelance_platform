@@ -24,7 +24,7 @@
       <tbody>
         {% for item in items_with_prices %}
         <tr>
-          <td>{{ item.title }}</td>
+          <td>{% trans item.title %}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ item.price }} EGP</td>
         </tr>

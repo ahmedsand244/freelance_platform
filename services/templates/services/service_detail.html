@@ -1,49 +1,301 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{{ service.title }}{% endblock %}
+{% block title %}{% trans service.title %} — {% trans service.category.name %}{% endblock %}
+{% block meta_description %}{% trans service.description as trans_desc %}{{ trans_desc|truncatechars:160 }}{% endblock %}
 
 {% block content %}
-<div class="service-detail-container">
-
-  <!-- العنوان -->
-  <h1 class="service-title">{{ service.title }}</h1>
-
-  <!-- صورة الخدمة -->
-  <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-image">
-
-  <!-- وصف الخدمة -->
-  <p class="service-description">{{ service.description }}</p>
-
-  <!-- السعر -->
-  <p class="service-price {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">💰 {% trans "Price" %}: {{ service.price }} EGP</p>
-
-  <!-- مقدم الخدمة -->
-  <div class="provider-box {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <h3 class="provider-heading ">👤 {% trans "Service Provider" %}:</h3>
-    {% if service.provider %}
-      <div class="provider-info">
-        <img src="{{ service.provider.profile_picture.url }}" alt="Provider Image" class="provider-img">
-        <div class="provider-details">
-          <p><strong>{% trans "Name" %}:</strong> {{ service.provider.user.username }}</p>
-          <p><strong>{% trans "Bio" %}:</strong> {{ service.provider.bio }}</p>
-          <p><strong>{% trans "Phone" %}:</strong> {{ service.provider.phone }}</p>
-        </div>
-      </div>
-    {% else %}
-      <p class="no-provider">{% trans "No registered provider for this service." %}</p>
-    {% endif %}
+<div class="container" style="padding-top: 3rem; padding-bottom: 8rem;">
+  
+  <!-- Breadcrumb & Tag -->
+  <div class="reveal" style="margin-bottom: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+    <a href="{% url 'home' %}" style="color: var(--gray-400);"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-right" style="font-size: 0.7rem; color: var(--gray-300);"></i>
+    <a href="{% url 'services_list' %}" style="text-decoration: none; font-weight: 600; color: var(--gray-500); font-size: 0.9rem;">{% trans "Services Hub" %}</a>
+    <i class="fas fa-chevron-right" style="font-size: 0.7rem; color: var(--gray-300);"></i>
+    <span class="section-badge" style="background: rgba(79, 70, 229, 0.05); color: var(--primary); border: none;">{% trans service.category.name %}</span>
   </div>
 
-  <!-- زر الإضافة إلى السلة -->
-  <form action="{% url 'add_to_cart' service.id %}" method="post" class="add-to-cart-form">
-    {% csrf_token %}
-    <button type="submit" class="add-to-cart-btn">🛒 {% trans "Add to Cart" %}</button>
-  </form>
+  <!-- Hero Header -->
+  <div class="service-hero reveal" style="margin-bottom: 4rem;">
+    <h1 class="section-heading" style="font-size: 3.2rem; margin-bottom: 1rem; line-height: 1.2;">{% trans service.title %}</h1>
+    <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+      {% if service.average_rating > 0 %}
+        <div style="display: flex; align-items: center; gap: 0.6rem; background: #f1c40f; color: white; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 700; font-size: 0.9rem;">
+          <i class="fas fa-star"></i> {{ service.average_rating }} <span style="font-weight: 500; opacity: 0.8;">({{ service.review_count }})</span>
+        </div>
+      {% endif %}
+      <div style="color: var(--gray-500); font-weight: 600;">
+        <i class="fas fa-eye" style="margin-right: 0.4rem;"></i> {{ service.views_count|default:"124" }} {% trans "Visions" %}
+      </div>
+      <div style="color: var(--gray-500); font-weight: 600;">
+        <i class="fas fa-clock" style="margin-right: 0.4rem;"></i> {% trans "Est. Delivery" %}: {{ service.delivery_days }} {% trans "Days" %}
+      </div>
+    </div>
+  </div>
 
+  <div class="row" style="display: grid; grid-template-columns: 1fr 400px; gap: 3.5rem;">
+    
+    <!-- Left: Content Deep Dive -->
+    <div class="service-details-left">
+      
+      <!-- Main Visual -->
+      <div class="premium-about-card reveal" style="padding: 0; overflow: hidden; margin-bottom: 3.5rem; position: relative;">
+        {% if service.image %}
+          <img src="{{ service.image.url }}" alt="{{ service.title }}" style="width: 100%; height: auto; display: block; border-radius: var(--radius-lg);">
+        {% else %}
+          <div style="height: 400px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; color: var(--gray-300); font-size: 6rem;"><i class="fas fa-image"></i></div>
+        {% endif %}
+        
+        <!-- Wishlist Button -->
+        <a href="{% url 'toggle_wishlist' service.id %}" style="position: absolute; bottom: 30px; right: 30px; width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #e74c3c; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: all 0.3s ease;">
+          <i class="fas fa-heart"></i>
+        </a>
+      </div>
+
+      <!-- About Service -->
+      <div class="section-header-wrap reveal" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 class="section-heading" style="font-size: 1.6rem;">{% trans "The Experience" %}</h3>
+      </div>
+      <div class="reveal" style="font-size: 1.2rem; line-height: 1.8; color: var(--gray-700); margin-bottom: 5rem;">
+        {% trans service.description as trans_desc %}
+        {{ trans_desc|linebreaks }}
+      </div>
+
+      <!-- Expert Profile Block -->
+      {% if service.provider %}
+      <div class="premium-about-card reveal" style="padding: 2.5rem; margin-bottom: 5rem; border-left: 5px solid var(--primary);">
+        <div style="display: flex; gap: 2rem; align-items: center;">
+          {% if service.provider.profile_picture %}
+            <img src="{{ service.provider.profile_picture.url }}" alt="" style="width: 100px; height: 100px; border-radius: 25px; object-fit: cover;">
+          {% else %}
+            <div style="width: 100px; height: 100px; border-radius: 25px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 700;">{{ service.provider.user.username|first|upper }}</div>
+          {% endif %}
+          <div style="flex-grow: 1;">
+            <h4 style="margin: 0 0 0.5rem 0; font-size: 1.4rem; font-weight: 700;">{{ service.provider.user.username }}</h4>
+            <div style="color: var(--gray-500); font-weight: 600; margin-bottom: 1rem;">{% trans "Expert Level Seller" %} • <i class="fas fa-bolt" style="color: #f1c40f;"></i> {% trans "Quick Responder" %}</div>
+            <a href="{% url 'seller_profile' service.provider.user.username %}" class="btn-outline-sm" style="text-decoration: none; border-radius: 10px;">{% trans "Visit Imperial Profile" %}</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Reviews Feed -->
+      <div class="section-header-wrap reveal" style="margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 class="section-heading" style="font-size: 1.6rem;">{% trans "Client Feedback" %}</h3>
+      </div>
+      
+      <div class="reviews-list">
+        {% for review in reviews %}
+          <div class="premium-about-card reveal" style="padding: 2rem; margin-bottom: 2rem; border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem;">
+              <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">{{ review.reviewer.username|first|upper }}</div>
+                <div>
+                  <h5 style="margin:0; font-weight: 700;">{{ review.reviewer.username }}</h5>
+                  <span style="font-size: 0.8rem; color: var(--gray-400);">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+              </div>
+              <div style="color: #f1c40f;">
+                {% for i in "12345" %}
+                  <i class="fas fa-star {% if forloop.counter <= review.rating %}star-icon{% else %}star-empty{% endif %}"></i>
+                {% endfor %}
+              </div>
+            </div>
+            <p style="margin: 0; line-height: 1.7; color: var(--gray-700); font-style: italic;">"{{ review.comment }}"</p>
+          </div>
+        {% empty %}
+          <div class="center" style="padding: 4rem; color: var(--gray-300); text-align: center;">
+            <i class="far fa-comments" style="font-size: 4rem; margin-bottom: 1.5rem;"></i>
+            <h3>{% trans "First one to experience this magic?" %}</h3>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Write Review Section -->
+      {% if can_review %}
+        <div class="premium-about-card reveal" style="padding: 2.5rem; margin-top: 3rem; background: rgba(79, 70, 229, 0.02); border: 2px dashed var(--primary);">
+            <h3 class="section-heading" style="font-size: 1.4rem; margin-bottom: 1.5rem;">{% trans "Share Your Experience" %}</h3>
+            <form method="post" class="premium-form">
+              {% csrf_token %}
+              <div class="form-group" style="margin-bottom: 2rem;">
+                <label class="form-label">{% trans "Your Rating" %}</label>
+                <div class="premium-star-rating" style="display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 1rem;">
+                  {% for i in "54321" %}
+                    <input type="radio" name="rating" id="star{{i}}" value="{{i}}" style="display: none;" required>
+                    <label for="star{{i}}" style="font-size: 2.2rem; color: var(--gray-300); cursor: pointer; transition: all 0.2s ease;">★</label>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 2rem;">
+                <label class="form-label">{% trans "Your Feedback" %}</label>
+                <textarea name="comment" class="form-input" rows="5" placeholder="{% trans 'What was it like to work with them?' %}" required></textarea>
+              </div>
+              <button type="submit" class="btn-primary" style="padding: 1.1rem 3rem; border-radius: 12px; font-weight: 700;">{% trans "Post Review" %}</button>
+            </form>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right: Sticky Purchase Sidebar -->
+    <div class="service-sidebar">
+      <div class="premium-about-card sticky-sidebar reveal" style="position: sticky; top: 100px; padding: 2.5rem; border: 1.5px solid var(--primary); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.12); border-radius: 25px;">
+        {% if service.has_tier_2 or service.has_tier_3 %}
+        <!-- Tier Selection Tabs -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: rgba(0,0,0,0.03); padding: 0.4rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <button type="button" class="tier-tab" data-tier="basic" style="flex:1; border:none; background:transparent; padding:0.6rem; border-radius:8px; font-weight:800; font-size:0.85rem; color:var(--gray-500); cursor:pointer; transition:all 0.3s;">
+            {% trans "Basic" %}
+          </button>
+          {% if service.has_tier_2 %}
+          <button type="button" class="tier-tab" data-tier="tier_2" style="flex:1; border:none; background:transparent; padding:0.6rem; border-radius:8px; font-weight:800; font-size:0.85rem; color:var(--gray-500); cursor:pointer; transition:all 0.3s;">
+            {% trans service.tier_2_name as t2_name %}{{ t2_name|default:"Premium" }}
+          </button>
+          {% endif %}
+          {% if service.has_tier_3 %}
+          <button type="button" class="tier-tab" data-tier="tier_3" style="flex:1; border:none; background:transparent; padding:0.6rem; border-radius:8px; font-weight:800; font-size:0.85rem; color:var(--gray-500); cursor:pointer; transition:all 0.3s;">
+            {% trans service.tier_3_name as t3_name %}{{ t3_name|default:"Imperial" }}
+          </button>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Content blocks per tier -->
+        <div id="tier-content-basic" class="tier-content-block">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3.5rem; font-weight: 950; color: var(--gray-900); display: flex; justify-content: center; align-items: baseline; gap: 0.6rem; line-height: 1;">
+              {{ service.price|floatformat:0 }} <span style="font-size: 1.2rem; color: var(--gray-400); font-weight: 700;">{% trans "EGP" %}</span>
+            </div>
+          </div>
+          <div style="color:var(--gray-600); font-weight:600; font-size:0.9rem; margin-bottom:2rem; text-align:center;">
+             <i class="fas fa-clock"></i> {% trans "Est. Delivery" %}: {{ service.delivery_days }} {% trans "Days" %}
+          </div>
+        </div>
+
+        {% if service.has_tier_2 %}
+        <div id="tier-content-tier_2" class="tier-content-block" style="display:none;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3.5rem; font-weight: 950; color: var(--gray-900); display: flex; justify-content: center; align-items: baseline; gap: 0.6rem; line-height: 1;">
+              {{ service.tier_2_price|floatformat:0 }} <span style="font-size: 1.2rem; color: var(--gray-400); font-weight: 700;">{% trans "EGP" %}</span>
+            </div>
+          </div>
+          <div style="color:var(--gray-600); font-weight:600; font-size:0.9rem; margin-bottom:1.5rem; text-align:center;">
+             <i class="fas fa-clock"></i> {% trans "Est. Delivery" %}: {{ service.tier_2_delivery_days }} {% trans "Days" %}
+          </div>
+          <p style="color:var(--gray-600); font-size:0.95rem; line-height:1.6; margin-bottom: 2rem;">
+              {% trans service.tier_2_description as t2_desc %}{{ t2_desc|linebreaksbr }}
+          </p>
+        </div>
+        {% endif %}
+
+        {% if service.has_tier_3 %}
+        <div id="tier-content-tier_3" class="tier-content-block" style="display:none;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3.5rem; font-weight: 950; color: var(--gray-900); display: flex; justify-content: center; align-items: baseline; gap: 0.6rem; line-height: 1;">
+              {{ service.tier_3_price|floatformat:0 }} <span style="font-size: 1.2rem; color: var(--gray-400); font-weight: 700;">{% trans "EGP" %}</span>
+            </div>
+          </div>
+          <div style="color:var(--gray-600); font-weight:600; font-size:0.9rem; margin-bottom:1.5rem; text-align:center;">
+             <i class="fas fa-clock"></i> {% trans "Est. Delivery" %}: {{ service.tier_3_delivery_days }} {% trans "Days" %}
+          </div>
+          <p style="color:var(--gray-600); font-size:0.95rem; line-height:1.6; margin-bottom: 2rem;">
+              {% trans service.tier_3_description as t3_desc %}{{ t3_desc|linebreaksbr }}
+          </p>
+        </div>
+        {% endif %}
+
+        <div style="display: grid; gap: 1.2rem; margin-bottom: 2.8rem;">
+          <form action="{% url 'add_to_cart' service.id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="tier" id="selected-tier-input" value="basic">
+            <button type="submit" class="btn-primary buy-btn-glow" style="width: 100%; border-radius: 18px; padding: 1.4rem; font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.8rem; border: none;">
+              <i class="fas fa-shopping-cart"></i> {% trans "Order Package" %}
+            </button>
+          </form>
+          {% if service.provider %}
+          <a href="{% url 'contact_organizer' service.provider.id %}" class="btn-outline-premium" style="width: 100%; border-radius: 18px; padding: 1.3rem; font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.8rem; text-decoration: none; transition: all 0.3s ease;">
+            <i class="fas fa-comment-dots"></i> {% trans "Consult Expert" %}
+          </a>
+          {% endif %}
+        </div>
+
+        <div style="display: grid; gap: 1.2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+          <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; color: var(--gray-600); font-weight: 650;">
+            <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(46, 204, 113, 0.1); color: #2ecc71; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"><i class="fas fa-check"></i></div>
+            {% trans "Funds Held in Escrow" %}
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; color: var(--gray-600); font-weight: 650;">
+            <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"><i class="fas fa-sync-alt"></i></div>
+            {% trans "Satisfaction Guaranteed" %}
+          </div>
+          <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.95rem; color: var(--gray-600); font-weight: 650;">
+            <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(241, 196, 15, 0.1); color: #f1c40f; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"><i class="fas fa-history"></i></div>
+            {{ service.revision_sessions|default:"2" }} {% trans "Revision Sessions" %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
+<style>
+/* Star Picker Logic */
+.premium-star-rating label:hover,
+.premium-star-rating label:hover ~ label,
+.premium-star-rating input:checked ~ label {
+  color: #f1c40f !important;
+  transform: scale(1.15);
+}
 
+@media (max-width: 1100px) {
+  .row { grid-template-columns: 1fr; }
+  .sticky-sidebar { position: static !important; max-width: 100%; }
+}
 
+html.dark-mode .premium-about-card { background: #1a1a1a !important; }
+html.dark-mode .section-heading { color: white !important; }
+html.dark-mode h4, html.dark-mode .order-price { color: white !important; }
 
+/* Tier Tab Styles */
+.tier-tab.active {
+  background: white !important;
+  color: var(--gray-900) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
+}
+html.dark-mode .tier-tab.active {
+  background: var(--card-bg) !important;
+  color: white !important;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tabs = document.querySelectorAll('.tier-tab');
+    const input = document.getElementById('selected-tier-input');
+    
+    if(tabs.length > 0) {
+        tabs[0].classList.add('active'); // set first as active initially
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active from all
+                tabs.forEach(t => t.classList.remove('active'));
+                // Hide all contents
+                document.querySelectorAll('.tier-content-block').forEach(c => c.style.display = 'none');
+                
+                // Add active to clicked
+                this.classList.add('active');
+                
+                // Show content
+                const tier = this.getAttribute('data-tier');
+                document.getElementById('tier-content-' + tier).style.display = 'block';
+                
+                // Set hidden input
+                if(input) input.value = tier;
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

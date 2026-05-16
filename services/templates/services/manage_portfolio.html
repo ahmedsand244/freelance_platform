@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="manage-portfolio-wrapper py-5" style="background: var(--bg-main); min-height: 100vh;">
+    <div class="container py-4">
+        <div class="glass-card shadow-lg p-5" style="border-radius: 40px; border: 1.5px solid rgba(67, 56, 202, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <div>
+                    <h1 style="font-weight: 950; font-size: 2.8rem; color: var(--gray-900); margin:0;">
+                        🏆 {% trans "Manage Your Imperial Showcase" %}
+                    </h1>
+                    <p style="opacity: 0.6; font-weight: 700; font-size: 1.1rem;">{% trans "Let your work be your testament in the palace of professionals." %}</p>
+                </div>
+                <a href="{% url 'add_portfolio_item' %}" class="btn btn-primary px-4 py-3" style="border-radius: 20px; font-weight: 950; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(67, 56, 202, 0.3);">
+                    <i class="fas fa-plus"></i> {% trans "Add New Project" %}
+                </a>
+            </div>
+
+            {% if portfolio_items %}
+            <div class="row g-4">
+                {% for item in portfolio_items %}
+                <div class="col-md-4">
+                    <div class="portfolio-card bg-white shadow-sm" style="border-radius: 25px; overflow: hidden; border: 1px solid var(--border-color); position: relative;">
+                        <img src="{{ item.image.url }}" style="width: 100%; height: 180px; object-fit: cover;">
+                        <div class="p-4">
+                            <h4 style="font-weight: 900; color: var(--gray-800); font-size: 1.15rem; margin-bottom: 0.5rem;">{% trans item.title %}</h4>
+                            {% trans item.description as trans_item_desc %}
+                            <p style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 1.5rem;">{{ trans_item_desc|truncatewords:10 }}</p>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-outline-danger w-100 py-2" style="border-radius: 12px; font-weight: 900;">Delete</button>
+                                <button class="btn btn-sm btn-outline-secondary w-100 py-2" style="border-radius: 12px; font-weight: 900;">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 5rem 0;">
+                <div style="font-size: 4rem; opacity: 0.1; margin-bottom: 2rem;">🛡️</div>
+                <h3 style="font-weight: 900; opacity: 0.6;">{% trans "Your showcase is empty. Start adding your victories!" %}</h3>
+                <a href="{% url 'add_portfolio_item' %}" class="btn btn-primary mt-4 py-3 px-5" style="border-radius: 20px; font-weight: 950; font-size: 1.1rem;">
+                    {% trans "Begin Building Your Legacy" %}
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="mt-5 text-center">
+                <a href="{% url 'seller_profile' request.user.username %}" class="btn btn-link" style="color: var(--primary); font-weight: 950; text-decoration: none;">
+                    <i class="fas fa-eye"></i> {% trans "View My Public Profile" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

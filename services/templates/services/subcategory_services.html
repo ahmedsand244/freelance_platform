@@ -15,10 +15,11 @@
         <div class="service-card">
           <h3 class="service-name">
             <a href="{% url 'service_detail' service.id %}" class="service-link">
-              {{ service.title }}
+              {% trans service.title %}
             </a>
           </h3>
-          <p class="service-description">{{ service.description|truncatewords:20 }}</p>
+          {% trans service.description as trans_desc %}
+          <p class="service-description">{{ trans_desc|truncatewords:20 }}</p>
           <a href="{% url 'service_detail' service.id %}" class="card-btn">🔍 {% trans "View Details" %}</a>
         </div>
       {% endfor %}

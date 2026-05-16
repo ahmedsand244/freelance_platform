@@ -1,84 +1,390 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}{% trans "Home" %}{% endblock %}
+{% block title %}{% trans "Home — Find Top Freelance Services" %}{% endblock %}
+{% block meta_description %}Discover premium freelance services in Egypt. Hire top professionals for design, development, events, and more. Secure payments, verified reviews.{% endblock %}
 
 {% block content %}
 
-<div class="home_image">
-  <h1 class="page-title_home {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">{% trans "Welcome to Our Platform!" %}</h1>
-  <p class="page-subtitle {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">{% trans "What would you like to get done today?" %}</p>
+<!-- 
+     HERO SECTION
+ -->
+<section class="hero-section">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge reveal">
+      <i class="fas fa-bolt"></i> {% trans "Egypt's #1 Freelance Marketplace" %}
+    </div>
+    <h1 class="hero-title reveal">
+      {% trans "Find the Perfect" %} <span class="hero-highlight">{% trans "Freelance Service" %}</span>
+      {% trans "for Your Business" %}
+    </h1>
+    <p class="hero-subtitle reveal">{% trans "Connect with top-rated professionals. Secure payments, verified reviews, on-time delivery." %}</p>
 
-  <!-- 🔍 Search Bar -->
-  <form method="get" action="{% url 'search_services' %}" class="search-form">
-    <input type="text" name="q" placeholder="{% trans 'Search for a service...' %}" class="search-input">
-    <button type="submit" class="search-button">{% trans "Search" %}</button>
-  </form>
-</div>
+    <!-- Main Search -->
+    <form method="get" action="{% url 'search_services' %}" class="hero-search reveal" autocomplete="off">
+      <div class="hero-search-wrapper">
+        <i class="fas fa-search hero-search-icon"></i>
+        <input type="text" name="q" placeholder="{% trans 'What service do you need?' %}"
+               class="hero-search-input" id="heroSearchInput">
+        <button type="submit" class="hero-search-btn">{% trans "Search" %}</button>
+      </div>
+    </form>
 
-<!-- 🛠️ Services -->
-<div class="section-blockm {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  <h2 class="services-headingm">{% trans "Our Services" %}</h2>
-  <div class="services-gridm">
-    {% for service in services %}
-      <div class="service-cardm">
-        <div class="service-card-bodym">
-          <h3 class="service-titlem">{{ service.title }}</h3>
-          <p class="service-descm">{% trans "Skills " %} : {{ service.description|truncatechars:60 }}</p>
-          <a href="{% url 'service_detail' service.id %}" class="service-linkm">{% trans "View Details" %}</a>
+    <!-- Popular tags -->
+    <div class="hero-tags reveal">
+      <span class="hero-tag-label">{% trans "Popular:" %}</span>
+      <a href="{% url 'search_services' %}?q=design" class="hero-tag">🎨 Design</a>
+      <a href="{% url 'search_services' %}?q=web" class="hero-tag">💻 Web Dev</a>
+      <a href="{% url 'search_services' %}?q=video" class="hero-tag">🎬 Video</a>
+      <a href="{% url 'search_services' %}?q=marketing" class="hero-tag">📣 Marketing</a>
+      <a href="{% url 'search_services' %}?q=writing" class="hero-tag">✍️ Writing</a>
+    </div>
+  </div>
+
+  <!-- Hero Stats -->
+  <div class="hero-stats reveal">
+    <div class="hero-stat-item">
+      <strong>500+</strong><span>{% trans "Services" %}</span>
+    </div>
+    <div class="hero-stat-divider"></div>
+    <div class="hero-stat-item">
+      <strong>1,000+</strong><span>{% trans "Happy Clients" %}</span>
+    </div>
+    <div class="hero-stat-divider"></div>
+    <div class="hero-stat-item">
+      <strong>98%</strong><span>{% trans "Satisfaction Rate" %}</span>
+    </div>
+    <div class="hero-stat-divider"></div>
+    <div class="hero-stat-item">
+      <strong>24/7</strong><span>{% trans "Support" %}</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- 
+     CATEGORIES SECTION
+ -->
+{% if categories %}
+<section class="categories-section reveal">
+  <div class="container">
+    <h2 class="section-heading">{% trans "Browse by Category" %}</h2>
+    <div class="categories-grid">
+      {% for cat in categories %}
+        <a href="{% url 'subcategories' cat.id %}" class="category-card">
+          <div class="category-icon">
+            {% if cat.icon %}<i class="{{ cat.icon }}"></i>{% else %}<i class="fas fa-briefcase"></i>{% endif %}
+          </div>
+          <span class="category-name">{% trans cat.name %}</span>
+          {% if cat.service_count %}
+            <span class="category-count">{{ cat.service_count }} {% trans "services" %}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- 
+     FEATURED  SERVICES
+ -->
+{% if featured_services %}
+<section class="featured-section reveal">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">⭐ {% trans "Featured" %}</span>
+        <h2 class="section-heading">{% trans "Top Promoted Services" %}</h2>
+      </div>
+    </div>
+    <div class="services-grid">
+      {% for service in featured_services %}
+        <article class="service-card featured-badge-card">
+          <div class="service-card-badge">{% trans "Featured" %}</div>
+          <div class="service-card-img-wrap">
+            {% if service.image %}
+              <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-card-img" loading="lazy">
+            {% else %}
+              <div class="service-card-img-placeholder"><i class="fas fa-briefcase"></i></div>
+            {% endif %}
+          </div>
+          <div class="service-card-body">
+            {% if service.provider %}
+              <div class="service-card-provider">
+                {% if service.provider.profile_picture %}
+                  <img src="{{ service.provider.profile_picture.url }}" alt="" class="provider-mini-avatar">
+                {% else %}
+                  <div class="provider-mini-avatar-ph">{{ service.provider.user.username|first|upper }}</div>
+                {% endif %}
+                <span>{{ service.provider.user.username }}</span>
+              </div>
+            {% endif %}
+            <h3 class="service-card-title"><a href="{% url 'service_detail' service.id %}">{{ service.title }}</a></h3>
+            <div class="service-card-meta">
+              {% if service.average_rating > 0 %}
+                <div class="service-rating">
+                  <i class="fas fa-star star-icon"></i>
+                  <span>{{ service.average_rating }}</span>
+                  <span class="review-count">({{ service.review_count }})</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="service-card-footer">
+            <span class="service-price-label">{% trans "Starting at" %}</span>
+            <span class="service-price">{{ service.price }} EGP</span>
+            <a href="{% url 'service_detail' service.id %}" class="service-detail-btn">{% trans "View" %} →</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- 
+     ALL  SERVICES
+ -->
+<section class="services-section reveal">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">🔥 {% trans "Fresh" %}</span>
+        <h2 class="section-heading">{% trans "Latest Services" %}</h2>
+        <p class="section-subtext">{% trans "Hand-picked services from verified professionals" %}</p>
+      </div>
+      <a href="{% url 'services_list' %}" class="section-link">{% trans "View All" %} <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <div class="services-grid">
+      {% for service in services %}
+        <article class="service-card reveal">
+          <div class="service-card-img-wrap">
+            {% if service.image %}
+              <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-card-img" loading="lazy">
+            {% else %}
+              <div class="service-card-img-placeholder"><i class="fas fa-briefcase"></i></div>
+            {% endif %}
+            {% if user.is_authenticated %}
+              <a href="{% url 'toggle_wishlist' service.id %}" class="wishlist-toggle-btn"
+                 title="{% trans 'Add to Wishlist' %}">
+                <i class="fas fa-heart"></i>
+              </a>
+            {% endif %}
+          </div>
+          <div class="service-card-body">
+            {% if service.provider %}
+              <div class="service-card-provider">
+                {% if service.provider.profile_picture %}
+                  <img src="{{ service.provider.profile_picture.url }}" alt="" class="provider-mini-avatar">
+                {% else %}
+                  <div class="provider-mini-avatar-ph">{{ service.provider.user.username|first|upper }}</div>
+                {% endif %}
+                <span>{{ service.provider.user.username }}</span>
+                {% if service.provider.is_verified %}
+                  <i class="fas fa-check-circle verified-icon" title="Verified"></i>
+                {% endif %}
+              </div>
+            {% endif %}
+            <h3 class="service-card-title">
+              <a href="{% url 'service_detail' service.id %}">{{ service.title }}</a>
+            </h3>
+            <p class="service-card-desc">{{ service.description|truncatechars:80 }}</p>
+            <div class="service-card-meta">
+              {% if service.average_rating > 0 %}
+                <div class="service-rating">
+                  <i class="fas fa-star star-icon"></i>
+                  <span class="rating-score">{{ service.average_rating }}</span>
+                  <span class="review-count">({{ service.review_count }})</span>
+                </div>
+              {% endif %}
+              {% if service.delivery_days %}
+                <span class="delivery-badge"><i class="fas fa-clock"></i> {{ service.delivery_days }} {% trans "Days" %}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="service-card-footer">
+            <div class="service-price-block">
+              <span class="service-price-label">{% trans "From" %}</span>
+              <span class="service-price">{{ service.price }} EGP</span>
+            </div>
+            <a href="{% url 'service_detail' service.id %}" class="service-detail-btn">{% trans "Details" %}</a>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-state">
+          <i class="fas fa-box-open empty-icon"></i>
+          <p>{% trans "No services available yet. Check back soon!" %}</p>
         </div>
-      </div>
-    {% empty %}
-      <p class="no-servicesm">{% trans "No services available." %}</p>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
-</div>
+</section>
 
-<!-- 🗓️ Latest Events -->
-<div class="events-cardm {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  <h3 class="events-titlem">📅 {% trans "Latest Events" %}</h3>
-  <div class="events-listm">
-    {% for event in events %}
-      <div class="event-itemm">
-        <h4 class="event-titlem">{% trans "Title" %} : {{ event.title }}</h4>
-        <p class="event-datem">{% trans "Time" %} : {{ event.date }} 🕒</p>
-        <a href="{% url 'events' %}" class="event-linkm">🔗 {% trans "View All" %}</a>
+
+<!-- 
+     HOW IT WORKS  SECTION
+ -->
+<section class="how-it-works reveal">
+  <div class="container">
+    <div class="section-header center">
+      <h2 class="section-heading">{% trans "How Freelance Yard Works" %}</h2>
+      <p class="section-subtext">{% trans "Get your project done in 3 simple steps" %}</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-number">1</div>
+        <div class="step-icon"><i class="fas fa-search-dollar"></i></div>
+        <h3>{% trans "Find a Service" %}</h3>
+        <p>{% trans "Browse hundreds of services or search by keyword, category, or price." %}</p>
       </div>
-    {% empty %}
-      <p class="no-eventsm">{% trans "No events currently available." %}</p>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- 👥 Top Providers -->
-<div class="section-blockm {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  <h3 class="providers-heading">{% trans "Service Providers" %}</h3>
-  <div class="provider-cards">
-    {% for provider in providers %}
-      <div class="provider-card">
-        <img src="{{ provider.profile_picture.url }}" alt="Profile" class="provider-img">
-        <h4 class="provider-name">{{ provider.user.username }}</h4>
+      <div class="step-connector"></div>
+      <div class="step-card reveal">
+        <div class="step-number">2</div>
+        <div class="step-icon"><i class="fas fa-shield-alt"></i></div>
+        <h3>{% trans "Secure Payment" %}</h3>
+        <p>{% trans "Pay safely via card or mobile wallet. Funds are held securely until delivery." %}</p>
       </div>
-    {% empty %}
-      <p class="no-providers">{% trans "No providers available." %}</p>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- 🤝 Success Partners -->
-<div class="section-blockm e">
-  <div class="partners-section">
-    <h2 class="providers-he">{% trans "Success Partners" %}</h2>
-    <div class="partners-wrapper">
-      <div class="partners-track">
-        {% for partner in partners %}
-          <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" class="partner-logo">
-        {% empty %}
-          <p>{% trans "No partners available." %}</p>
-        {% endfor %}
+      <div class="step-connector"></div>
+      <div class="step-card reveal">
+        <div class="step-number">3</div>
+        <div class="step-icon"><i class="fas fa-rocket"></i></div>
+        <h3>{% trans "Get Results" %}</h3>
+        <p>{% trans "Review the delivered work and approve. Money released to the freelancer." %}</p>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+
+<!-- 
+     LATEST  EVENTS
+ -->
+{% if events %}
+<section class="events-section reveal">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">📅 {% trans "Events" %}</span>
+        <h2 class="section-heading">{% trans "Latest Events" %}</h2>
+      </div>
+      <a href="{% url 'events' %}" class="section-link">{% trans "All Events" %} <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="events-grid">
+      {% for event in events %}
+        <div class="event-card reveal">
+          <div class="event-img-wrap">
+            {% if event.image %}
+              <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-img" loading="lazy">
+            {% else %}
+               <div class="service-card-img-placeholder"><i class="fas fa-calendar-alt"></i></div>
+            {% endif %}
+          </div>
+          <div class="event-body">
+            <div class="event-date"><i class="fas fa-calendar-day"></i> {{ event.date|date:"M d, Y" }}</div>
+            <h3 class="event-title">{% trans event.title %}</h3>
+            {% trans event.description as trans_event_desc %}
+            <p class="event-desc">{{ trans_event_desc|truncatechars:100 }}</p>
+            <a href="{% url 'events' %}" class="event-link">{% trans "Learn More" %} →</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- 
+     TOP  PROVIDERS
+ -->
+{% if providers %}
+<section class="providers-section-home reveal">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">👤 {% trans "Talent" %}</span>
+        <h2 class="section-heading">{% trans "Featured Freelancers" %}</h2>
+        <p class="section-subtext">{% trans "Work with the best professionals in Egypt" %}</p>
+      </div>
+    </div>
+    <div class="providers-grid">
+      {% for provider in providers %}
+        <div class="provider-card-home reveal">
+          <div class="provider-cover"></div>
+          {% if provider.profile_picture %}
+            <img src="{{ provider.profile_picture.url }}" alt="{{ provider.user.username }}" class="provider-avatar">
+          {% else %}
+            <div class="provider-avatar-ph">{{ provider.user.username|first|upper }}</div>
+          {% endif %}
+          <div class="provider-info-home">
+            <h4 class="provider-name-home">{{ provider.user.username }}</h4>
+            {% if provider.bio %}
+              {% trans provider.bio as trans_bio %}
+              <p class="provider-bio-home">{{ trans_bio|truncatechars:100 }}</p>
+            {% endif %}
+            <div class="provider-skills">
+              {% for skill in provider.skill_list|slice:":3" %}
+                <span class="skill-tag">{{ skill }}</span>
+              {% endfor %}
+            </div>
+            <div class="provider-meta-home">
+              <span><i class="fas fa-briefcase"></i> {{ provider.services.count }} {% trans "services" %}</span>
+              {% if provider.experience_years %}
+                <span><i class="fas fa-award"></i> {{ provider.experience_years }} {% trans "yr exp" %}</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- 
+     SUCCESS  PARTNERS  MARQUEE
+ -->
+{% if partners %}
+<section class="partners-section reveal">
+  <div class="container">
+    <h2 class="providers-he">{% trans "Trusted by Great Brands" %}</h2>
+  </div>
+  <div class="partners-wrapper">
+    <div class="partners-track">
+      {% for partner in partners %}
+        <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" class="partner-logo">
+      {% endfor %}
+      {% for partner in partners %}
+        <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" class="partner-logo">
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- 
+     CTA  BANNER
+ -->
+<section class="cta-banner reveal">
+  <div class="cta-content">
+    <h2>{% trans "Ready to Start Your Project?" %}</h2>
+    <p>{% trans "Join thousands of satisfied clients and top freelancers on Freelance Yard." %}</p>
+    <div class="cta-actions">
+      {% if user.is_authenticated %}
+        <a href="{% url 'services_list' %}" class="cta-btn-primary">{% trans "Browse Services" %} <i class="fas fa-arrow-right"></i></a>
+      {% else %}
+        <a href="{% url 'register' %}" class="cta-btn-primary">{% trans "Get Started Free" %} <i class="fas fa-arrow-right"></i></a>
+        <a href="{% url 'login' %}" class="cta-btn-secondary">{% trans "Sign In" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
 {% endblock %}

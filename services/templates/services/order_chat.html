@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Chat" %} | {% trans "Order" %} #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Sidebar / Order summary -->
+    <div class="chat-sidebar">
+        <h3 class="sidebar-title">{% trans "Order Info" %}</h3>
+        <div class="sidebar-order-details">
+            <p><strong>{% trans "Order" %} #{{ order.id }}</strong></p>
+            <p><span class="badge badge-info">{{ order.get_status_display }}</span></p>
+            
+            {% for item in order.items.all %}
+                <div class="sidebar-item">
+                    {% if item.service.image %}
+                        <img src="{{ item.service.image.url }}" alt="{{ item.service.title }}">
+                    {% endif %}
+                    <div>
+                        <p class="service-title">{{ item.service.title }}</p>
+                        <p class="price">{{ item.price_at_purchase|floatformat:2 }} EGP x{{ item.quantity }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="mt-3">
+                <a href="{% url 'order_detail' order.id %}" class="btn-primary w-100 text-center"><i class="fas fa-eye"></i> {% trans "View Order Details" %}</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Box -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <div class="chat-header-user">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div class="user-info">
+                    <h4>{{ other_user.username }}</h4>
+                    <p class="typing-indicator" id="headerTypingIndicator">{% trans "typing..." %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            {% for msg in messages_history %}
+                <div class="message {% if msg.sender == request.user %}message-out{% else %}message-in{% endif %} reveal revealed">
+                    <div class="bubble {% if msg.custom_offer %}offer-bubble{% endif %}">
+                        {% if msg.custom_offer %}
+                            <div class="offer-card" style="min-width: 280px; padding: 1.5rem; border-radius: 20px; background: rgba(0,0,0,0.1); border: 1.5px solid {% if msg.custom_offer.status == 'accepted' %}#10b981{% else %}rgba(255,255,255,0.1){% endif %};">
+                                <h4 style="font-weight: 950; margin-bottom: 1rem; color: #fbbf24;"><i class="fas fa-crown"></i> {% trans "Special Imperial Offer" %}</h4>
+                                <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1.5rem;">{{ msg.custom_offer.description }}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                    <div style="font-size: 1.8rem; font-weight: 950; color: white;">{{ msg.custom_offer.price }} <span style="font-size: 0.8rem; opacity: 0.6;">EGP</span></div>
+                                    <div style="font-size: 0.75rem; font-weight: 800; background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 10px;">{{ msg.custom_offer.delivery_days }} {% trans "Days" %}</div>
+                                </div>
+                                
+                                {% if msg.custom_offer.status == 'pending' and msg.custom_offer.recipient == request.user %}
+                                    <button onclick="acceptOffer({{ msg.custom_offer.id }})" class="btn-primary" style="width: 100%; border-radius: 12px; padding: 0.8rem; font-weight: 900; font-size: 0.9rem;">
+                                        {% trans "Accept & Deposit Securely" %}
+                                    </button>
+                                {% elif msg.custom_offer.status == 'accepted' %}
+                                    <div style="text-align: center; color: #10b981; font-weight: 950; font-size: 0.9rem;">
+                                        <i class="fas fa-check-double"></i> {% trans "Sovereign Contract Signed" %}
+                                    </div>
+                                {% else %}
+                                    <div style="text-align: center; opacity: 0.4; font-weight: 900; font-size: 0.8rem;">
+                                        {{ msg.custom_offer.get_status_display }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            {{ msg.text }}
+                        {% endif %}
+                        <span class="timestamp">{{ msg.created_at|date:"g:i A" }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="chat-input-area">
+            {% if is_provider %}
+            <button class="btn-attach" id="openOfferModal" title="{% trans 'Create Special Offer' %}" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1.5px solid rgba(251, 191, 36, 0.2);">
+                <i class="fas fa-star"></i>
+            </button>
+            {% endif %}
+            <button class="btn-attach" title="Attach File"><i class="fas fa-paperclip"></i></button>
+            <textarea id="chatInput" placeholder="{% trans 'Type a message...' %}" rows="1"></textarea>
+            <button id="chatSendBtn" class="btn-send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Offer Modal -->
+{% if is_provider %}
+<div id="offerModal" class="modal-overlay" style="display: none;">
+    <div class="glass-card modal-content" style="max-width: 500px; padding: 3rem; border-radius: 40px; position: relative;">
+        <button id="closeOfferModal" style="position: absolute; right: 2rem; top: 2rem; background: none; border: none; color: white; cursor: pointer; font-size: 1.5rem;">&times;</button>
+        <h2 style="font-weight: 950; color: white; margin-bottom: 2rem;">🛡️ {% trans "Imperial Special Offer" %}</h2>
+        <form id="offerForm">
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); font-weight: 800;">{% trans "Proposal Description" %}</label>
+                    <textarea name="description" required style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 1rem; border-radius: 15px;" rows="3" placeholder="What extra value are you providing?"></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); font-weight: 800;">{% trans "Price (EGP)" %}</label>
+                        <input type="number" name="price" required style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 1rem; border-radius: 15px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); font-weight: 800;">{% trans "Delivery (Days)" %}</label>
+                        <input type="number" name="delivery_days" value="3" required style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 1rem; border-radius: 15px;">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 1rem; padding: 1.2rem; border-radius: 20px; font-weight: 950; font-size: 1.1rem;">
+                    <i class="fas fa-paper-plane"></i> {% trans "Send Sovereign Offer" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+</style>
+{% endif %}
+
+<script>
+    const orderId = parseInt("{{ order.id|escapejs }}", 10);
+    const currentUserId = parseInt("{{ request.user.id|escapejs }}", 10);
+    const chatApiUrl = `{% url 'order_chat_api' order.id %}`;
+    
+    const messagesContainer = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('chatSendBtn');
+    const headerTypingIndicator = document.getElementById('headerTypingIndicator');
+
+    let lastMessageId = 0;
+    {% if messages_history.last %}
+    lastMessageId = {{ messages_history.last.id }};
+    {% endif %}
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    // Initial scroll
+    scrollToBottom();
+
+    async function fetchNewMessages() {
+        try {
+            const res = await fetch(`${chatApiUrl}?last_id=${lastMessageId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    if (msg.id > lastMessageId) {
+                        lastMessageId = msg.id;
+                        renderMessage(msg);
+                    }
+                });
+                scrollToBottom();
+            }
+        } catch (e) {
+            console.error('Error fetching messages:', e);
+        }
+    }
+
+    function renderMessage(data) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${data.is_me ? 'message-out' : 'message-in'} reveal revealed`;
+        
+        let innerHtml = '';
+        if (data.custom_offer) {
+            const offer = data.custom_offer;
+            let offerActionHtml = '';
+            if (offer.status === 'pending' && offer.is_recipient) {
+                offerActionHtml = `<button onclick="acceptOffer(${offer.id})" class="btn-primary" style="width: 100%; border-radius: 12px; padding: 0.8rem; font-weight: 900; font-size: 0.9rem;">
+                    {% trans "Accept & Deposit Securely" %}
+                </button>`;
+            } else if (offer.status === 'accepted') {
+                offerActionHtml = `<div style="text-align: center; color: #10b981; font-weight: 950; font-size: 0.9rem;">
+                    <i class="fas fa-check-double"></i> {% trans "Sovereign Contract Signed" %}
+                </div>`;
+            } else {
+                offerActionHtml = `<div style="text-align: center; opacity: 0.4; font-weight: 900; font-size: 0.8rem;">
+                    ${offer.status.toUpperCase()}
+                </div>`;
+            }
+            
+            innerHtml = `
+            <div class="bubble offer-bubble">
+                <div class="offer-card" style="min-width: 280px; padding: 1.5rem; border-radius: 20px; background: rgba(0,0,0,0.1); border: 1.5px solid ${offer.status === 'accepted' ? '#10b981' : 'rgba(255,255,255,0.1)'};">
+                    <h4 style="font-weight: 950; margin-bottom: 1rem; color: #fbbf24;"><i class="fas fa-crown"></i> {% trans "Special Imperial Offer" %}</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1.5rem;">${offer.description}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="font-size: 1.8rem; font-weight: 950; color: white;">${offer.price} <span style="font-size: 0.8rem; opacity: 0.6;">EGP</span></div>
+                        <div style="font-size: 0.75rem; font-weight: 800; background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 10px;">${offer.delivery_days} {% trans "Days" %}</div>
+                    </div>
+                    ${offerActionHtml}
+                </div>
+                <span class="timestamp">${data.created_at}</span>
+            </div>`;
+        } else {
+            innerHtml = `
+            <div class="bubble">
+                ${data.text.replace(/\n/g, '<br>')}
+                <span class="timestamp">${data.created_at}</span>
+            </div>`;
+        }
+        
+        msgDiv.innerHTML = innerHtml;
+        messagesContainer.appendChild(msgDiv);
+    }
+
+    async function sendMessage() {
+        const msg = chatInput.value.trim();
+        if (msg) {
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            
+            try {
+                const res = await fetch(chatApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
+                
+                if (res.ok) {
+                    chatInput.value = '';
+                    await fetchNewMessages();
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.focus();
+            }
+        }
+    }
+
+    sendBtn.onclick = sendMessage;
+
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Poll every 3 seconds instead of WebSockets
+    setInterval(fetchNewMessages, 3000);
+
+    // ── Custom Offer Logic ──
+    const offerModal = document.getElementById('offerModal');
+    const openOfferBtn = document.getElementById('openOfferModal');
+    const closeOfferBtn = document.getElementById('closeOfferModal');
+    const offerForm = document.getElementById('offerForm');
+
+    if (openOfferBtn && offerModal) {
+        openOfferBtn.onclick = () => offerModal.style.display = 'flex';
+        closeOfferBtn.onclick = () => offerModal.style.display = 'none';
+        
+        offerForm.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(offerForm);
+            fetch('{% url "create_custom_offer" order.id %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    offerModal.style.display = 'none';
+                    offerForm.reset();
+                    location.reload(); 
+                } else {
+                    alert(data.error);
+                }
+            });
+        };
+    }
+
+    window.acceptOffer = function(offerId) {
+        if (!confirm('Proceed to checkout for this special offer?')) return;
+        const url = '{% url "accept_custom_offer" 0 %}'.replace('0', offerId);
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                alert(data.error || 'Something went wrong.');
+            }
+        });
+    };
+</script>
+
+<style>
+/* ══ CHAT LAYOUT ══ */
+.chat-container {
+  display: flex; max-width: 1200px; margin: 1.5rem auto 3rem;
+  height: 80vh; border-radius: 28px; overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* ══ SIDEBAR ══ */
+.chat-sidebar {
+  width: 280px; background: #ffffff;
+  border-left: 1px solid #eef0f5; padding: 1.8rem 1.4rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.sidebar-title {
+  margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 900; color: #1e293b;
+  padding-bottom: 0.8rem; border-bottom: 2px solid #6366f1; letter-spacing: -0.3px;
+}
+.sidebar-item {
+  display: flex; gap: 0.9rem; margin-top: 0.8rem; align-items: center;
+  border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem;
+}
+.sidebar-item img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; }
+.service-title { font-weight: 700; margin: 0 0 0.2rem 0; font-size: 0.88rem; color: #1e293b; line-height: 1.3; }
+.price { color: #6366f1; margin: 0; font-size: 0.82rem; font-weight: 800; }
+.sidebar-order-details p { margin: 0.3rem 0; font-size: 0.9rem; color: #475569; font-weight: 600; }
+
+/* ══ MAIN CHAT ══ */
+.chat-main { flex: 1; display: flex; flex-direction: column; background: #eef2ff; position: relative; }
+
+.chat-header {
+  padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.06); background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04); z-index: 1;
+}
+.chat-header-user { display: flex; align-items: center; gap: 0.9rem; }
+.user-avatar {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 1.15rem; box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+}
+.user-info h4 { margin: 0; font-size: 1rem; font-weight: 800; color: #1e293b; }
+.typing-indicator { margin: 0; font-size: 0.78rem; color: #10b981; font-style: italic; display: none; }
+
+/* ══ MESSAGES ══ */
+.chat-messages {
+  flex: 1; padding: 1.5rem 1.2rem; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.8rem;
+  background-image: radial-gradient(#c7d2fe 1px, transparent 1px);
+  background-size: 22px 22px; background-color: #eef2ff;
+}
+
+.message { display: flex; width: 100%; }
+.message-in  { justify-content: flex-start; }
+.message-out { justify-content: flex-end; }
+
+.bubble {
+  max-width: 65%; padding: 0.72rem 1rem; border-radius: 18px;
+  position: relative; line-height: 1.55; font-size: 0.94rem; word-break: break-word;
+}
+.message-in .bubble {
+  background: #ffffff; color: #1e293b;
+  border-bottom-left-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.message-out .bubble {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff; border-bottom-right-radius: 5px;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+}
+
+.timestamp { display: block; font-size: 0.67rem; margin-top: 0.3rem; text-align: right; }
+.message-in  .timestamp { color: #94a3b8; }
+.message-out .timestamp { color: rgba(255,255,255,0.65); }
+
+/* ══ INPUT AREA ══ */
+.chat-input-area {
+  padding: 0.9rem 1.2rem; background: #ffffff;
+  border-top: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 0.6rem;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.04);
+}
+.btn-attach {
+  background: #f1f5f9; border: 1px solid #e2e8f0; width: 40px; height: 40px;
+  border-radius: 50%; font-size: 1rem; color: #64748b; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.btn-attach:hover { background: #e0e7ff; color: #6366f1; border-color: #c7d2fe; }
+
+#chatInput {
+  flex: 1; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #1e293b;
+  border-radius: 22px; padding: 0.7rem 1.2rem; font-family: inherit;
+  font-size: 0.93rem; resize: none; outline: none; transition: 0.2s; line-height: 1.4;
+}
+#chatInput:focus { background: #ffffff; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+#chatInput::placeholder { color: #94a3b8; }
+
+.btn-send {
+  background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none;
+  width: 44px; height: 44px; border-radius: 50%; font-size: 1rem; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.4); flex-shrink: 0;
+}
+.btn-send:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(99,102,241,0.5); }
+
+.badge { padding: 0.3rem 0.9rem; border-radius: 30px; font-size: 0.76rem; font-weight: 800; }
+.badge-info { background: rgba(99,102,241,0.1); color: #6366f1; }
+
+/* ══ DARK MODE ══ */
+html.dark-mode .chat-container { box-shadow: 0 25px 80px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.06); }
+
+html.dark-mode .chat-sidebar { background: #161b27; border-color: rgba(255,255,255,0.06); }
+html.dark-mode .sidebar-title { color: #e2e8f0; border-color: #6366f1; }
+html.dark-mode .service-title { color: #cbd5e1; }
+html.dark-mode .sidebar-item { border-color: rgba(255,255,255,0.06); }
+html.dark-mode .sidebar-order-details p { color: #94a3b8; }
+
+html.dark-mode .chat-header { background: #1e2435; border-color: rgba(255,255,255,0.06); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+html.dark-mode .user-info h4 { color: #f1f5f9; }
+
+html.dark-mode .chat-messages { background-color: #111827; background-image: radial-gradient(rgba(99,102,241,0.12) 1px, transparent 1px); }
+
+html.dark-mode .message-in .bubble { background: #1e2a3d; color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+html.dark-mode .message-out .bubble { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+html.dark-mode .message-in .timestamp { color: #64748b; }
+
+html.dark-mode .chat-input-area { background: #1e2435; border-color: rgba(255,255,255,0.06); box-shadow: 0 -4px 12px rgba(0,0,0,0.3); }
+html.dark-mode .btn-attach { background: #252f45; border-color: rgba(255,255,255,0.08); color: #64748b; }
+html.dark-mode .btn-attach:hover { background: #2e3d5c; color: #a5b4fc; border-color: #4f46e5; }
+
+html.dark-mode #chatInput { background: #252f45; border-color: rgba(255,255,255,0.08); color: #e2e8f0; }
+html.dark-mode #chatInput:focus { background: #1e2a3d; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+html.dark-mode #chatInput::placeholder { color: #475569; }
+html.dark-mode .badge-info { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+</style>
+{% endblock %}

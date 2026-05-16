@@ -1,0 +1,399 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "The Imperial Agora" %} — {% trans "Myths Solutions" %}{% endblock %}
+
+{% block content %}
+<div class="agora-page-wrapper">
+
+  <!-- ═══════════════════════════════════════ HERO ═══════════════════════════ -->
+  <div class="agora-hero-section">
+    <div class="agora-hero-glow agora-glow-1"></div>
+    <div class="agora-hero-glow agora-glow-2"></div>
+    <div class="container agora-hero-content">
+      <div class="agora-hero-icon">🏛️</div>
+      <h1 class="agora-hero-title">{% trans "The Imperial Agora" %}</h1>
+      <p class="agora-hero-sub">{% trans "The sovereign marketplace where your vision meets world-class expertise." %}</p>
+      <div class="agora-hero-actions">
+        <a href="{% url 'post_project' %}" class="agora-cta-btn">
+          <i class="fas fa-hammer"></i> {% trans "Post Your Sovereign Need" %}
+        </a>
+        <div class="agora-stats-pill">
+          <i class="fas fa-bolt"></i> {{ projects|length }} {% trans "Active Quests" %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ FEED ════════════════════════════ -->
+  <div class="container agora-feed">
+
+    {% for project in projects %}
+    <div class="agora-card reveal">
+
+      <!-- Top Bar -->
+      <div class="agora-card-top">
+        <div class="agora-card-tags">
+          <span class="agora-category-badge">
+            <i class="fas fa-layer-group"></i>
+            {% trans project.category.name|default:"General" %}
+          </span>
+          <span class="agora-time-badge">
+            <i class="far fa-clock"></i> {{ project.created_at|timesince }} {% trans "ago" %}
+          </span>
+        </div>
+        <div class="agora-budget-pill">
+          <span class="agora-budget-label">{% trans "Budget" %}</span>
+          <span class="agora-budget-amount">{{ project.budget|floatformat:0 }} <span class="agora-currency">EGP</span></span>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="agora-card-body">
+        <div class="agora-card-main">
+          <h2 class="agora-project-title">
+            <a href="{% url 'project_detail' project.id %}">{% trans project.title %}</a>
+          </h2>
+          <p class="agora-project-desc">{% trans project.description as t_desc %}{{ t_desc|truncatewords:45 }}</p>
+
+          <!-- Footer Row -->
+          <div class="agora-card-footer">
+            <div class="agora-poster">
+              <div class="agora-poster-avatar">{{ project.user.username|first|upper }}</div>
+              <div class="agora-poster-info">
+                <span class="agora-poster-name">{{ project.user.username }}</span>
+                <span class="agora-poster-label">{% trans "Project Owner" %}</span>
+              </div>
+            </div>
+            <div class="agora-proposals-badge">
+              <i class="fas fa-handshake"></i>
+              <span>{{ project.bid_count }} {% trans "Proposals" %}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA Side -->
+        <div class="agora-card-cta">
+          <div class="agora-budget-card">
+            <div class="agora-budget-icon"><i class="fas fa-coins"></i></div>
+            <div class="agora-budget-card-label">{% trans "Estimated Budget" %}</div>
+            <div class="agora-budget-card-value">{{ project.budget|floatformat:0 }}</div>
+            <div class="agora-budget-card-currency">EGP</div>
+          </div>
+          <a href="{% url 'project_detail' project.id %}" class="agora-bid-btn">
+            <i class="fas fa-paper-plane"></i>
+            {% trans "Bid Now" %}
+          </a>
+          <div class="agora-bids-count">
+            <i class="fas fa-users"></i> {{ project.bid_count }} {% trans "bids submitted" %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="agora-empty reveal">
+      <div class="agora-empty-icon">📭</div>
+      <h2 class="agora-empty-title">{% trans "The Agora is currently quiet. No active needs." %}</h2>
+      <p class="agora-empty-sub">{% trans "Be the sovereign who ignites this arena — post the first project." %}</p>
+      <a href="{% url 'post_project' %}" class="agora-cta-btn">
+        <i class="fas fa-plus-circle"></i> {% trans "Be the First to Post" %}
+      </a>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<style>
+/* ───────────────────────────────────────────────────────────────────
+   AGORA PAGE — FULL PREMIUM REDESIGN
+   Supports: Light Mode / Dark Mode
+──────────────────────────────────────────────────────────────────── */
+
+/* PAGE WRAPPER */
+.agora-page-wrapper {
+  background: var(--bg-main);
+  min-height: 100vh;
+  padding-bottom: 8rem;
+}
+
+/* ── HERO ──────────────────────────────────────────────────────────── */
+.agora-hero-section {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4f46e5 100%);
+  padding: 7rem 0 6rem;
+  margin-bottom: 5rem;
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+}
+
+.agora-hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+.agora-glow-1 {
+  width: 600px; height: 600px;
+  top: -200px; right: -100px;
+  background: rgba(139, 92, 246, 0.35);
+}
+.agora-glow-2 {
+  width: 400px; height: 400px;
+  bottom: -150px; left: -80px;
+  background: rgba(99, 102, 241, 0.25);
+}
+
+.agora-hero-content {
+  position: relative; z-index: 2;
+  text-align: center; color: white;
+}
+.agora-hero-icon { font-size: 5rem; margin-bottom: 1.5rem; }
+.agora-hero-title {
+  font-size: 4.5rem; font-weight: 950;
+  letter-spacing: -2px; line-height: 1.05;
+  margin: 0 0 1.5rem;
+  color: white;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+.agora-hero-sub {
+  font-size: 1.5rem; font-weight: 600;
+  opacity: 0.85; max-width: 700px;
+  margin: 0 auto 3rem; line-height: 1.6;
+}
+.agora-hero-actions {
+  display: flex; gap: 1.5rem;
+  justify-content: center; align-items: center;
+  flex-wrap: wrap;
+}
+.agora-cta-btn {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  background: white; color: #4f46e5;
+  font-weight: 900; font-size: 1.15rem;
+  padding: 1.1rem 2.8rem;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+}
+.agora-cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+  color: #4f46e5;
+  text-decoration: none;
+}
+.agora-stats-pill {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  color: white; font-weight: 800; font-size: 1.05rem;
+  padding: 1rem 2rem; border-radius: 50px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ── FEED ──────────────────────────────────────────────────────────── */
+.agora-feed { display: flex; flex-direction: column; gap: 2.5rem; }
+
+/* ── CARD ──────────────────────────────────────────────────────────── */
+.agora-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border-color);
+  border-radius: 30px;
+  padding: 3rem 3.5rem;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.agora-card::before {
+  content: '';
+  position: absolute;
+  inset: 0; border-radius: 30px;
+  background: linear-gradient(135deg, rgba(79,70,229,0.03), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.agora-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(79,70,229,0.12); border-color: rgba(79,70,229,0.3); }
+.agora-card:hover::before { opacity: 1; }
+
+/* Dark mode card */
+html.dark-mode .agora-card {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+}
+html.dark-mode .agora-card:hover {
+  background: rgba(79,70,229,0.06);
+  border-color: rgba(99,102,241,0.35);
+  box-shadow: 0 20px 60px rgba(99,102,241,0.15);
+}
+
+/* ── CARD TOP ──────────────────────────────────────────────────────── */
+.agora-card-top {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 2rem;
+  flex-wrap: wrap; gap: 1rem;
+}
+.agora-card-tags { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.agora-category-badge {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  background: rgba(79,70,229,0.08);
+  color: var(--primary);
+  padding: 0.55rem 1.3rem; border-radius: 50px;
+  font-weight: 800; font-size: 0.9rem;
+  border: 1px solid rgba(79,70,229,0.15);
+}
+html.dark-mode .agora-category-badge {
+  background: rgba(99,102,241,0.15);
+  border-color: rgba(99,102,241,0.25);
+}
+.agora-time-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  color: var(--gray-400); font-weight: 700; font-size: 0.95rem;
+}
+.agora-budget-pill {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  background: rgba(16,185,129,0.07);
+  border: 1px solid rgba(16,185,129,0.2);
+  padding: 0.6rem 1.4rem; border-radius: 50px;
+}
+.agora-budget-label { color: #10b981; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+.agora-budget-amount { color: #064e3b; font-weight: 900; font-size: 1.15rem; }
+.agora-currency { font-size: 0.75rem; opacity: 0.6; }
+html.dark-mode .agora-budget-amount { color: #6ee7b7; }
+
+/* ── CARD BODY ─────────────────────────────────────────────────────── */
+.agora-card-body {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 3rem; align-items: start;
+}
+.agora-project-title {
+  font-size: 2rem; font-weight: 900;
+  letter-spacing: -0.8px; line-height: 1.25;
+  margin: 0 0 1.2rem;
+}
+.agora-project-title a {
+  color: var(--gray-900); text-decoration: none;
+  transition: color 0.3s ease;
+}
+.agora-project-title a:hover { color: var(--primary); }
+html.dark-mode .agora-project-title a { color: #f1f5f9; }
+
+.agora-project-desc {
+  color: var(--gray-600); line-height: 1.85;
+  font-size: 1.1rem; margin-bottom: 2.5rem;
+}
+html.dark-mode .agora-project-desc { color: #94a3b8; }
+
+/* Card Footer Row */
+.agora-card-footer {
+  display: flex; align-items: center;
+  gap: 2rem; flex-wrap: wrap;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+.agora-poster { display: flex; align-items: center; gap: 1rem; }
+.agora-poster-avatar {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #4338ca);
+  color: white; display: flex; align-items: center;
+  justify-content: center; font-weight: 900; font-size: 1.2rem;
+  box-shadow: 0 8px 20px rgba(79,70,229,0.3);
+}
+.agora-poster-info { display: flex; flex-direction: column; }
+.agora-poster-name { font-weight: 800; color: var(--gray-900); font-size: 1rem; }
+html.dark-mode .agora-poster-name { color: #e2e8f0; }
+.agora-poster-label { font-size: 0.78rem; color: var(--gray-400); font-weight: 700; }
+.agora-proposals-badge {
+  display: inline-flex; align-items: center; gap: 0.7rem;
+  background: rgba(99,102,241,0.07);
+  color: var(--primary); padding: 0.55rem 1.4rem;
+  border-radius: 50px; font-weight: 800; font-size: 0.95rem;
+  border: 1px solid rgba(99,102,241,0.15);
+}
+
+/* ── CTA SIDE ──────────────────────────────────────────────────────── */
+.agora-card-cta {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1.2rem;
+  position: sticky; top: 100px;
+}
+.agora-budget-card {
+  width: 100%; text-align: center;
+  background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));
+  border: 1.5px solid rgba(16,185,129,0.2);
+  border-radius: 24px; padding: 2rem 1.5rem;
+}
+html.dark-mode .agora-budget-card {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.25);
+}
+.agora-budget-icon {
+  font-size: 2rem; color: #10b981;
+  margin-bottom: 0.8rem;
+}
+.agora-budget-card-label {
+  font-size: 0.75rem; font-weight: 800;
+  color: #10b981; text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 0.5rem;
+}
+.agora-budget-card-value {
+  font-size: 2.8rem; font-weight: 950;
+  color: #064e3b; letter-spacing: -1px; line-height: 1;
+}
+html.dark-mode .agora-budget-card-value { color: #6ee7b7; }
+.agora-budget-card-currency {
+  font-size: 0.9rem; color: #10b981; font-weight: 700;
+  opacity: 0.7; margin-top: 0.3rem;
+}
+.agora-bid-btn {
+  width: 100%; display: flex; align-items: center;
+  justify-content: center; gap: 0.8rem;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white; font-weight: 900; font-size: 1.15rem;
+  padding: 1.2rem 2rem; border-radius: 18px;
+  text-decoration: none;
+  box-shadow: 0 12px 30px rgba(79,70,229,0.35);
+  transition: all 0.3s ease;
+}
+.agora-bid-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(79,70,229,0.45);
+  color: white; text-decoration: none;
+}
+.agora-bids-count {
+  font-size: 0.85rem; color: var(--gray-400);
+  font-weight: 700; display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* ── EMPTY STATE ───────────────────────────────────────────────────── */
+.agora-empty {
+  text-align: center; padding: 8rem 2rem;
+  background: var(--card-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: 30px;
+}
+.agora-empty-icon { font-size: 6rem; opacity: 0.15; margin-bottom: 2rem; }
+.agora-empty-title {
+  font-size: 2rem; font-weight: 900; margin-bottom: 1rem;
+  color: var(--gray-500);
+}
+.agora-empty-sub {
+  color: var(--gray-400); font-size: 1.1rem;
+  margin-bottom: 3rem; max-width: 500px;
+  margin-inline: auto;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────────────── */
+@media (max-width: 991px) {
+  .agora-card-body { grid-template-columns: 1fr; }
+  .agora-card-cta { position: static; }
+  .agora-hero-title { font-size: 2.8rem; }
+  .agora-project-title { font-size: 1.5rem; }
+  .agora-card { padding: 2rem 1.5rem; }
+  .agora-card-top { flex-direction: column; align-items: flex-start; }
+}
+</style>
+{% endblock %}

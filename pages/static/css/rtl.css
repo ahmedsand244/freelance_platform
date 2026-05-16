@@ -1,0 +1,155 @@
+/* ==========================================================================
+   RTL SUPPORT (Arabic)
+   ========================================================================== */
+
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"], [dir="rtl"] body, [dir="rtl"] button, [dir="rtl"] input, [dir="rtl"] select, [dir="rtl"] textarea {
+  font-family: 'Cairo', sans-serif !important;
+}
+
+/* Navbar Flipping */
+[dir="rtl"] .nav-search-input {
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+}
+
+[dir="rtl"] .nav-search-icon {
+  left: auto;
+  right: 1rem;
+}
+
+[dir="rtl"] .nav-links {
+  padding-right: 0;
+}
+
+[dir="rtl"] .account-dropdown-menu {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .nav-chevron {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* Section Header */
+[dir="rtl"] .section-header {
+  flex-direction: row;
+}
+
+[dir="rtl"] .section-link i {
+  transform: scaleX(-1);
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+[dir="rtl"] .section-link:hover {
+  transform: translateX(-4px);
+}
+
+/* Service Card */
+[dir="rtl"] .service-card-badge {
+  left: auto;
+  right: 1rem;
+}
+
+[dir="rtl"] .wishlist-toggle-btn {
+  right: auto;
+  left: 1rem;
+}
+
+[dir="rtl"] .provider-mini-avatar, 
+[dir="rtl"] .provider-mini-avatar-ph {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+[dir="rtl"] .service-detail-btn i {
+  transform: scaleX(-1);
+}
+
+/* Hero Section */
+[dir="rtl"] .hero-stat-divider {
+  /* No change needed if it's just a line */
+}
+
+/* Sidebar Sticky */
+[dir="rtl"] .sticky-sidebar {
+  /* Ensure it doesn't break grid if it's on the right/left */
+}
+
+/* Footer */
+[dir="rtl"] .footer-column.links a:hover, 
+[dir="rtl"] .footer-bottom-links a:hover {
+  transform: translateX(-8px);
+}
+
+[dir="rtl"] .footer-column i {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+/* Form Groups */
+[dir="rtl"] .form-label {
+  text-align: right;
+}
+
+/* Toasts */
+[dir="rtl"] .toast-container {
+  right: auto;
+  left: 2rem;
+}
+
+[dir="rtl"] .toast {
+  border-left: none;
+  border-right: 4px solid var(--primary);
+  transform: translateX(-120%);
+}
+
+[dir="rtl"] .toast-show {
+  transform: translateX(0);
+}
+
+/* Icons Mirroring */
+[dir="rtl"] .fa-chevron-right,
+[dir="rtl"] .fa-arrow-right,
+[dir="rtl"] .fa-paper-plane,
+[dir="rtl"] .fa-sign-out-alt {
+  transform: scaleX(-1);
+  display: inline-block;
+}
+
+/* Specific component fixes */
+[dir="rtl"] .hero-search-wrapper {
+  flex-direction: row;
+}
+
+[dir="rtl"] .nav-account-dropdown .nav-chevron {
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+[dir="rtl"] .btn-primary i,
+[dir="rtl"] .btn-secondary i,
+[dir="rtl"] .section-link i {
+  margin-left: 0;
+  /* margin-right: 0.5rem; handled by general mirroring usually */
+}
+
+/* Breadcrumbs */
+[dir="rtl"] .breadcrumb-nav i {
+  transform: scaleX(-1);
+}
+
+/* Service Detail Purchase Block */
+[dir="rtl"] .premium-star-rating {
+  flex-direction: row; /* Instead of row-reverse if it's already flipped in logic */
+}
+
+/* Guide Floating Launcher */
+[dir="rtl"] #guide-launcher {
+  left: auto;
+  right: 30px;
+}

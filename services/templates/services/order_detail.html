@@ -1,41 +1,1066 @@
-<!-- 
-
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Order Details{% endblock %}
+{% block title %}{% trans "Order" %} #{{ order.id }} | {% trans "Details" %}{% endblock %}
 
 {% block content %}
-<div class="order-details-container">
-    <h2 class="order-heading">🧾 Order # {{ order.id }} Details</h2>
+<div class="order-detail-page">
+  <div class="order-detail-header reveal">
+    <div class="header-left">
+      <h1>{% trans "Order" %} #{{ order.id }}</h1>
+      <span class="status-badge status-{{ order.status }}">
+        {{ order.get_status_display }}
+      </span>
+      {% if order.payment.status == 'in_escrow' %}
+        <span class="status-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left: 0.5rem;">
+          <i class="fas fa-lock"></i> {% trans "Funds in Escrow" %}
+        </span>
+      {% endif %}
+    </div>
+    <div class="header-right">
+      <span class="order-date"><i class="fas fa-calendar-alt"></i> {{ order.created_at|date:"F d, Y" }}</span>
+    </div>
+  </div>
 
-    <div class="order-meta">
-        <p><strong>👤 User:</strong> {{ order.user.username }}</p>
-        <p><strong>📅 Created At:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
-        <p><strong>📦 Status:</strong> {{ order.get_status_display }}</p>
+  <div class="order-content-grid">
+    
+    <!-- ── LEFT: Order Items & Milestones ── -->
+    <div class="main-column">
+      
+      <!-- Timeline / Milestones -->
+      <div class="order-section reveal">
+        <h2><i class="fas fa-stream"></i> {% trans "Order Timeline" %}</h2>
+        <div class="timeline-container">
+          
+          <!-- Placed -->
+          <div class="timeline-item completed">
+            <div class="timeline-icon"><i class="fas fa-shopping-cart"></i></div>
+            <div class="timeline-content">
+              <h4>{% trans "Order Placed" %}</h4>
+              <p>{{ order.created_at|date:"M d, g:i A" }}</p>
+            </div>
+          </div>
+          
+          <!-- Escrow/Deposit -->
+          <div class="timeline-item {% if order.payment.status == 'in_escrow' or order.payment.status == 'released' %}completed{% else %}pending{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="timeline-content">
+              <h4>{% trans "Deposit Secured in Escrow" %}</h4>
+              {% if order.payment.status == 'in_escrow' or order.payment.status == 'released' %}
+                <p class="text-success"><i class="fas fa-check"></i> {% trans "Funds are safely held by Freelance Yard." %}</p>
+              {% else %}
+                <p>{% trans "Awaiting payment." %}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Milestones Breakdown -->
+          {% if order.milestones.exists %}
+            {% for m in order.milestones.all %}
+              <div class="timeline-item {% if m.status == 'released' %}completed{% elif m.status == 'funded' or m.status == 'active' or m.status == 'in_review' %}active{% else %}pending{% endif %}">
+                <div class="timeline-icon">
+                  {% if m.status == 'released' %}<i class="fas fa-check-double"></i>
+                  {% elif m.status == 'funded' %}<i class="fas fa-lock"></i>
+                  {% else %}<i class="fas fa-clock"></i>{% endif %}
+                </div>
+                <div class="timeline-content milestone-box-v2">
+                  <div class="milestone-header-v2">
+                    <div>
+                      <div class="milestone-label">{{ m.title }}</div>
+                      {% if order.milestones.count >= 2 %}
+                        {% if forloop.first %}
+                          <div class="milestone-pct-badge milestone-pct-deposit">30% Deposit</div>
+                        {% else %}
+                          <div class="milestone-pct-badge milestone-pct-remaining">70% Remaining</div>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                    <div class="milestone-amount-block">
+                      <span class="milestone-amount-num">{{ m.amount|floatformat:0 }}</span>
+                      <span class="milestone-amount-egp">EGP</span>
+                    </div>
+                  </div>
+
+                  <div class="milestone-status-row">
+                    {% if m.status == 'funded' %}
+                      <span class="ms-badge ms-badge-escrow"><i class="fas fa-shield-alt"></i> Secured in Escrow</span>
+                      {% if is_freelancer %}<span class="ms-hint">✅ Payment ready — complete your work to unlock</span>{% endif %}
+                    {% elif m.status == 'released' %}
+                      <span class="ms-badge ms-badge-paid"><i class="fas fa-check"></i> Released to Freelancer</span>
+                    {% elif m.status == 'in_review' %}
+                      <span class="ms-badge ms-badge-review"><i class="fas fa-eye"></i> Under Review</span>
+                    {% elif m.status == 'pending' %}
+                      <span class="ms-badge ms-badge-pending"><i class="fas fa-hourglass-half"></i> Pending Payment</span>
+                      {% if is_client and forloop.last and order.status == 'in_progress' %}
+                        <span class="ms-hint">⏳ Pay remaining 70% when ready to close the order</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="ms-badge ms-badge-gray">{{ m.get_status_display }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <!-- Delivery & Approval -->
+          <div class="timeline-item {% if order.status == 'completed' %}completed{% elif order.status == 'revision' %}warning{% else %}pending{% endif %}">
+            <div class="timeline-icon"><i class="fas fa-box-open"></i></div>
+            <div class="timeline-content">
+              <h4>{% trans "Delivery & Approval" %}</h4>
+              {% if order.status == 'completed' %}
+                <p class="text-success"><i class="fas fa-check-double"></i> {% trans "Delivery Accepted. Funds Released to Freelancer." %}</p>
+              {% elif order.status == 'revision' %}
+                <p class="text-warning"><i class="fas fa-redo"></i> {% trans "Revision Requested. Freelancer is updating the work." %}</p>
+              {% elif order.status == 'in_progress' %}
+                <p>{% trans "Work in progress. Pending delivery from the freelancer." %}</p>
+                
+                <!-- Client Action Buttons -->
+                {% if request.user == order.user %}
+                  <div class="delivery-actions mt-3">
+                    <p class="text-muted small mb-2"><i class="fas fa-info-circle"></i> {% trans "If the freelancer has delivered your work, please review it below." %}</p>
+                    <div class="action-buttons-row">
+                      <form action="{% url 'accept_delivery' order.id %}" method="post" onsubmit="return confirm('{% trans "Are you sure you want to approve this delivery? Funds will be released to the freelancer." %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-success-large">
+                          <i class="fas fa-check"></i> {% trans "Accept Delivery & Release Funds" %}
+                        </button>
+                      </form>
+                      
+                      <button type="button" class="btn-warning-outline" onclick="document.getElementById('revisionForm').style.display='block'">
+                        <i class="fas fa-redo"></i> {% trans "Request Revision" %}
+                      </button>
+                    </div>
+                    
+                    <!-- Revision Form (Hidden) -->
+                    <div id="revisionForm" style="display:none; margin-top: 1rem; padding: 1rem; background: var(--gray-100); border-radius: var(--radius-sm);">
+                      <form action="{% url 'request_revision' order.id %}" method="post">
+                        {% csrf_token %}
+                        <label class="form-label">{% trans "Reason for Revision" %}</label>
+                        <textarea name="reason" class="form-textarea" rows="3" required placeholder="{% trans 'Please specify what needs to be changed...' %}"></textarea>
+                        <div style="margin-top: 0.5rem; text-align: right;">
+                          <button type="button" class="btn-outline-sm" onclick="document.getElementById('revisionForm').style.display='none'">{% trans "Cancel" %}</button>
+                          <button type="submit" class="btn-primary" style="padding: 0.4rem 1rem;">{% trans "Submit Request" %}</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                {% endif %}
+                
+              {% else %}
+                <p>{% trans "Waiting for earlier steps." %}</p>
+              {% endif %}
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <!-- ✅ Progress Tracker -->
+      <div class="order-section reveal" id="progress-tracker-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0;"><i class="fas fa-tasks" style="color: var(--primary);"></i> {% trans "Project Progress" %}</h2>
+        </div>
+
+        <!-- Dynamic Progress Bar (calculated via JS from data attributes) -->
+        <div style="background: var(--gray-200); border-radius: 50px; height: 10px; margin-bottom: 2rem; overflow: hidden;">
+          <div id="progress-fill"
+               style="height: 100%; width: 0%; border-radius: 50px; background: linear-gradient(90deg, var(--primary), #10b981); transition: width 0.6s ease;"
+               data-total="{{ order.tasks.count }}"
+               data-completed="{% for t in order.tasks.all %}{% if t.is_completed %}1{% endif %}{% endfor %}">
+          </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list" style="margin-bottom: 1.5rem;">
+          {% for task in order.tasks.all %}
+          <div class="task-item {% if task.is_completed %}task-done{% endif %}">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              {% if is_freelancer %}
+              <form action="{% url 'toggle_order_task' task.id %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="task-toggle {% if task.is_completed %}task-checked{% else %}task-unchecked{% endif %}">
+                  {% if task.is_completed %}<i class="fas fa-check"></i>{% endif %}
+                </button>
+              </form>
+              {% else %}
+              <div class="task-toggle {% if task.is_completed %}task-checked{% else %}task-unchecked{% endif %}" style="cursor: default;">
+                {% if task.is_completed %}<i class="fas fa-check"></i>{% endif %}
+              </div>
+              {% endif %}
+              <span style="flex: 1; font-weight: 600; {% if task.is_completed %}text-decoration: line-through; color: var(--gray-400);{% endif %}">{{ task.title }}</span>
+              {% if is_freelancer %}
+              <form action="{% url 'delete_order_task' task.id %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="task-delete" title="Delete task" onclick="return confirm('Remove this task?')">
+                  <i class="fas fa-times"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div style="text-align: center; padding: 2rem; color: var(--gray-400);">
+            <i class="fas fa-clipboard-list" style="font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.8rem; display: block;"></i>
+            <p style="margin: 0; font-size: 0.9rem;">
+              {% if is_freelancer %}{% trans "Add your first task to show the client your progress." %}{% else %}{% trans "The freelancer hasn't added any tasks yet." %}{% endif %}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add Task Form (Freelancer Only) -->
+        {% if is_freelancer %}
+        <form action="{% url 'add_order_task' order.id %}" method="post" style="display: flex; gap: 0.8rem;">
+          {% csrf_token %}
+          <input type="text" name="title" placeholder="{% trans 'e.g. Research, Wireframing, Development...' %}"
+                 style="flex: 1; border-radius: 12px; padding: 0.8rem 1.2rem; border: 1.5px solid var(--border-color); background: var(--card-bg); font-size: 0.9rem;" required>
+          <button type="submit" class="btn-primary" style="border-radius: 12px; padding: 0.8rem 1.5rem; font-weight: 700; white-space: nowrap;">
+            <i class="fas fa-plus"></i> {% trans "Add Task" %}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+      <!-- Order Items List -->
+      <div class="order-section reveal">
+        <h2><i class="fas fa-shopping-bag"></i> {% trans "Services Ordered" %}</h2>
+        <div class="order-items-list">
+          {% for item in order.items.all %}
+            <div class="oi-card">
+              <!-- Image -->
+              <div class="oi-img-wrap">
+                {% if item.service.image %}
+                  <img src="{{ item.service.image.url }}" alt="{{ item.service.title }}" class="oi-img">
+                {% else %}
+                  <div class="oi-img-placeholder"><i class="fas fa-briefcase"></i></div>
+                {% endif %}
+                <span class="oi-category-badge">{{ item.service.category.name|default:"Service" }}</span>
+              </div>
+
+              <!-- Details -->
+              <div class="oi-details">
+                <a href="{% url 'service_detail' item.service.id %}" class="oi-title">{{ item.service.title }}</a>
+                <div class="oi-seller">
+                  <div class="oi-seller-avatar">{{ item.service.provider.user.username|first|upper }}</div>
+                  <div class="oi-seller-info">
+                    <span class="oi-seller-label">{% trans "Seller" %}</span>
+                    <span class="oi-seller-name">@{{ item.service.provider.user.username }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price & Qty -->
+              <div class="oi-price-block">
+                <div class="oi-qty-pill">
+                  <i class="fas fa-cubes"></i> ×{{ item.quantity }}
+                </div>
+                <div class="oi-price-val">{{ item.price_at_purchase|floatformat:2 }}</div>
+                <div class="oi-price-currency">EGP</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+
+      <!-- 📎 Draft Submissions -->
+      <div class="order-section reveal" id="draft-submissions-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0; border: none; padding: 0;"><i class="fas fa-paperclip" style="color: var(--primary);"></i> {% trans "Draft Submissions" %}</h2>
+          {% if drafts %}
+          <span style="font-size: 0.85rem; font-weight: 700; color: var(--gray-500);">{{ drafts.count }} {% trans "file(s)" %}</span>
+          {% endif %}
+        </div>
+
+        <!-- Drafts Grid -->
+        {% if drafts %}
+        <div class="drafts-grid">
+          {% for draft in drafts %}
+          <div class="draft-card">
+            <!-- File Preview -->
+            <div class="draft-preview">
+              {% if draft.is_image %}
+                <img src="{{ draft.file.url }}" alt="{{ draft.title }}" class="draft-img-preview">
+              {% else %}
+                <div class="draft-file-icon">
+                  {% if draft.file_extension == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                  {% elif draft.file_extension in 'doc,docx' %}<i class="fas fa-file-word"></i>
+                  {% elif draft.file_extension in 'zip,rar' %}<i class="fas fa-file-archive"></i>
+                  {% elif draft.file_extension in 'mp4,mov,avi' %}<i class="fas fa-file-video"></i>
+                  {% else %}<i class="fas fa-file"></i>{% endif %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- File Info -->
+            <div class="draft-info">
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--gray-900); word-break: break-word;">{{ draft.title|truncatechars:40 }}</div>
+              <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.3rem;">
+                <span class="draft-ext-badge">{{ draft.file_extension|upper }}</span>
+                {{ draft.file_size_display }} &bull; {{ draft.created_at|date:"M d, g:i A" }}
+              </div>
+              {% if draft.note %}
+              <div style="font-size: 0.8rem; color: var(--gray-600); margin-top: 0.5rem; font-style: italic; border-left: 3px solid var(--primary); padding-left: 0.5rem;">"{{ draft.note|truncatechars:80 }}"</div>
+              {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="draft-actions">
+              <a href="{{ draft.file.url }}" download class="draft-btn draft-btn-download" title="{% trans 'Download' %}">
+                <i class="fas fa-download"></i>
+              </a>
+              {% if is_freelancer %}
+              <form action="{% url 'delete_order_draft' draft.id %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="draft-btn draft-btn-delete" title="{% trans 'Delete draft' %}" onclick="return confirm('Remove this draft?')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2.5rem; color: var(--gray-400);">
+          <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; opacity: 0.25; display: block; margin-bottom: 1rem;"></i>
+          <p style="margin: 0; font-size: 0.9rem;">
+            {% if is_freelancer %}{% trans "Upload your first draft so the client can review your progress." %}{% else %}{% trans "No drafts submitted yet. The freelancer will upload files here for your review." %}{% endif %}
+          </p>
+        </div>
+        {% endif %}
+
+        <!-- Upload Form (Freelancer Only) -->
+        {% if is_freelancer %}
+        <div class="draft-upload-box" id="draft-upload-toggle">
+          <button type="button" onclick="document.getElementById('draftUploadForm').style.display = document.getElementById('draftUploadForm').style.display === 'none' ? 'block' : 'none'"
+                  class="btn-primary" style="width: 100%; justify-content: center; border-radius: 12px; margin-top: 1.5rem;">
+            <i class="fas fa-upload"></i> {% trans "Upload New Draft" %}
+          </button>
+          <div id="draftUploadForm" style="display: none; margin-top: 1rem; padding: 1.5rem; background: var(--gray-100); border-radius: 16px; border: 1.5px dashed var(--border-color);">
+            <form action="{% url 'upload_order_draft' order.id %}" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div style="display: grid; gap: 1rem;">
+                <div>
+                  <label style="font-weight: 700; font-size: 0.85rem; color: var(--gray-700); display: block; margin-bottom: 0.4rem;">{% trans "File" %} *</label>
+                  <input type="file" name="draft_file" required
+                         style="width: 100%; padding: 0.7rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--card-bg); font-size: 0.9rem;">
+                </div>
+                <div>
+                  <label style="font-weight: 700; font-size: 0.85rem; color: var(--gray-700); display: block; margin-bottom: 0.4rem;">{% trans "Label (optional)" %}</label>
+                  <input type="text" name="title" placeholder="e.g. Homepage Design v1"
+                         style="width: 100%; padding: 0.7rem 1rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--card-bg); font-size: 0.9rem;">
+                </div>
+                <div>
+                  <label style="font-weight: 700; font-size: 0.85rem; color: var(--gray-700); display: block; margin-bottom: 0.4rem;">{% trans "Note to client (optional)" %}</label>
+                  <textarea name="note" rows="2" placeholder="e.g. Please review the header section and share feedback."
+                            style="width: 100%; padding: 0.7rem 1rem; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--card-bg); font-size: 0.9rem; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                  <button type="button" onclick="document.getElementById('draftUploadForm').style.display='none'" class="btn-outline-sm">{% trans "Cancel" %}</button>
+                  <button type="submit" class="btn-primary" style="border-radius: 10px; padding: 0.7rem 1.5rem;">
+                    <i class="fas fa-upload"></i> {% trans "Submit Draft" %}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- 💬 Activity Feed -->
+      <div class="order-section reveal" id="activity-feed-section">
+        <h2 style="border: none; padding: 0; margin-bottom: 1.5rem;">
+          <i class="fas fa-comments" style="color: var(--primary);"></i> {% trans "Activity Feed" %}
+          {% if updates %}<span style="font-size: 0.8rem; font-weight: 600; color: var(--gray-400); margin-left: 0.5rem;">{{ updates|length }}</span>{% endif %}
+        </h2>
+
+        <!-- Post Update Form -->
+        <form action="{% url 'post_order_update' order.id %}" method="post" class="activity-post-form">
+          {% csrf_token %}
+          <div class="activity-input-row">
+            <div class="activity-avatar {% if is_freelancer %}av-freelancer{% else %}av-client{% endif %}">
+              {{ request.user.username|first|upper }}
+            </div>
+            <div style="flex: 1; position: relative;">
+              <textarea name="message" rows="2" placeholder="{% if is_freelancer %}{% trans 'Post a status update for the client...' %}{% else %}{% trans 'Send a message to the freelancer...' %}{% endif %}" required
+                        class="activity-textarea"></textarea>
+            </div>
+            <button type="submit" class="activity-send-btn" title="{% trans 'Send' %}">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+
+        <!-- Updates List -->
+        <div class="activity-list">
+          {% for update in updates %}
+          <div class="activity-item {% if update.is_freelancer_post %}activity-freelancer{% else %}activity-client{% endif %}">
+            <div class="activity-avatar-sm {% if update.is_freelancer_post %}av-freelancer{% else %}av-client{% endif %}">
+              {{ update.author.username|first|upper }}
+            </div>
+            <div class="activity-bubble">
+              <div class="activity-bubble-header">
+                <span class="activity-author">{{ update.author.username }}</span>
+                <span class="activity-role {% if update.is_freelancer_post %}role-freelancer{% else %}role-client{% endif %}">
+                  {% if update.is_freelancer_post %}Freelancer{% else %}Client{% endif %}
+                </span>
+                <span class="activity-time">{{ update.created_at|timesince }} ago</span>
+              </div>
+              <div class="activity-body">{{ update.message }}</div>
+            </div>
+          </div>
+          {% empty %}
+          <div style="text-align: center; padding: 2rem; color: var(--gray-400);">
+            <i class="fas fa-comment-dots" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 0.8rem;"></i>
+            <p style="margin: 0; font-size: 0.9rem;">{% trans "No updates yet. Start the conversation!" %}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
     </div>
 
-    <hr>
+    <!-- ── RIGHT: Summary & Support ── -->
+    <div class="sidebar-column">
+      
+      <!-- Enhanced Payment Summary with Milestone Visual -->  
+      <div class="order-summary-card reveal">
+        <div class="summary-card-header">
+          <div class="summary-card-icon"><i class="fas fa-coins"></i></div>
+          <div>
+            <h3 style="margin:0;">{% trans "Payment Summary" %}</h3>
+            <div class="summary-order-id">#{{ order.id }}</div>
+          </div>
+        </div>
 
-    <h5 class="service-heading">🛒 Ordered Services:</h5>
-    <ul class="service-list">
-        {% for item in order.items.all %}
-            <li class="service-item">
-                <p>
-                    <strong>{{ item.service.title }}</strong><br><br>
-                    {{ item.quantity }} × {{ item.service.price }} EGP
-                </p>
-            </li>
-        {% endfor %}
-    </ul>
+        <div class="summary-total-block">
+          <div class="summary-total-label">{% trans "Total Order Value" %}</div>
+          <div class="summary-total-value">{{ order.total_price|floatformat:2 }} <span class="summary-total-currency">EGP</span></div>
+        </div>
 
-    <div class="total-price">
-        <h4><strong>💰 Total:</strong> {{ order.total_price|floatformat:2 }} EGP</h4>
+        {% if order.milestones.count >= 2 %}
+        <!-- Visual Payment Progress Bar -->
+        <div style="margin: 1.5rem 0;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--gray-500); margin-bottom: 0.5rem;">
+            <span>Payment Progress</span>
+            <span>{% if order.milestones.first.status == 'released' %}100%{% elif order.milestones.first.status == 'funded' %}30%{% else %}0%{% endif %}</span>
+          </div>
+          <div style="height: 8px; background: var(--gray-200); border-radius: 50px; overflow: hidden;">
+            <div style="height: 100%; border-radius: 50px; background: linear-gradient(90deg, #10b981, #059669);
+              width: {% if order.milestones.first.status == 'released' %}100{% elif order.milestones.first.status == 'funded' %}30{% else %}0{% endif %}%;
+              transition: width 0.8s ease;"></div>
+          </div>
+        </div>
+
+        <!-- Milestone Rows -->
+        <div class="summary-milestone-row {% if order.milestones.first.status == 'funded' or order.milestones.first.status == 'released' %}smr-funded{% else %}smr-pending{% endif %}">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem;">30% Deposit</div>
+            <div style="font-size: 0.75rem; color: var(--gray-500);">Secured in Escrow</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800;">{{ order.milestones.first.amount|floatformat:2 }} EGP</div>
+            {% if order.milestones.first.status == 'released' %}
+              <span style="font-size: 0.7rem; color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Paid</span>
+            {% elif order.milestones.first.status == 'funded' %}
+              <span style="font-size: 0.7rem; color: #2563eb; font-weight: 700;"><i class="fas fa-lock"></i> In Escrow</span>
+            {% else %}
+              <span style="font-size: 0.7rem; color: var(--gray-400); font-weight: 700;">Pending</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="summary-milestone-row {% if order.milestones.last.status == 'released' %}smr-funded{% else %}smr-pending{% endif %}">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem;">70% Remaining</div>
+            <div style="font-size: 0.75rem; color: var(--gray-500);">Due on delivery</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 800;">{{ order.milestones.last.amount|floatformat:2 }} EGP</div>
+            {% if order.milestones.last.status == 'released' %}
+              <span style="font-size: 0.7rem; color: #10b981; font-weight: 700;"><i class="fas fa-check"></i> Paid</span>
+            {% else %}
+              <span style="font-size: 0.7rem; color: var(--gray-400); font-weight: 700;"><i class="fas fa-hourglass-half"></i> Pending</span>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="summary-row">
+          <span>{% trans "To Pay Now" %}</span>
+          <span style="color: #10b981; font-weight: bold;">{% widthratio order.total_price 100 30 %} EGP</span>
+        </div>
+        {% endif %}
+
+        <div class="summary-divider"></div>
+        <div class="payment-method-info">
+          {% if order.payment %}
+            <div class="paid-via-row">
+              <i class="fas fa-shield-check" style="color: #10b981;"></i>
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 1px;">{% trans "Secured Payment" %}</div>
+                <div style="font-size: 0.9rem; font-weight: 700;">{% trans "Paid via" %} {{ order.payment.get_method_display }}</div>
+              </div>
+            </div>
+            {% if order.payment.paymob_order_id %}
+            <div style="font-size: 0.72rem; color: var(--gray-400); margin-top: 0.5rem; font-family: monospace; background: var(--gray-100); padding: 0.4rem 0.8rem; border-radius: 8px;">TX: {{ order.payment.paymob_order_id|truncatechars:22 }}</div>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'payment_method' order.id %}" class="pay-now-btn">
+              <i class="fas fa-lock"></i> {% trans "Pay Now" %}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="chat-card reveal" style="margin-bottom: 2rem; background: linear-gradient(135deg, #4f46e5, #ec4899); color: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2); text-align: center;">
+        <h3 style="color: white; border: none; padding: 0; margin-bottom: 1rem;"><i class="fas fa-comments"></i> {% trans "Order Live Chat" %}</h3>
+        <p style="opacity: 0.9; font-size: 0.9rem; margin-bottom: 1.5rem;">{% trans "Communicate directly with the other party to clarify requirements, request custom offers, and track progress." %}</p>
+        <a href="{% url 'order_chat' order.id %}" class="btn" style="display: block; width: 100%; background: white; color: #4f46e5; padding: 0.8rem; border-radius: 12px; font-weight: 800; font-size: 1rem; text-decoration: none; transition: transform 0.2s;">
+          <i class="fas fa-paper-plane"></i> {% trans "Open Live Chat" %}
+        </a>
+      </div>
+
+      <div class="support-card reveal">
+        <h3><i class="fas fa-headset"></i> {% trans "Need Help?" %}</h3>
+        <p>{% trans "If you experience any issues with delivery, you can open a dispute or contact support." %}</p>
+        <a href="{% url 'contact' %}" class="btn-outline-sm" style="width: 100%; justify-content: center;">
+          {% trans "Contact Support" %}
+        </a>
+      </div>
+      
     </div>
 
-    <div class="text-center mt-4">
-        <button onclick="window.print()" class="btn-print">
-            🖨️ Print Invoice
-        </button>
-    </div>
+  </div>
 </div>
-{% endblock %} -->
+
+<style>
+  /* Local styles specific to order details page for timeline */
+  .order-detail-page { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+  .order-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+  .header-left h1 { margin: 0 0 0.5rem 0; font-size: 2rem; }
+  .order-content-grid { display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; }
+  @media (max-width: 900px) { .order-content-grid { grid-template-columns: 1fr; } }
+  .order-section { background: var(--card-bg); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); margin-bottom: 2rem; }
+  .order-section h2 { margin-top: 0; margin-bottom: 2rem; font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+
+  /* Milestone v2 Timeline */
+  .milestone-box-v2 { background: var(--gray-100); padding: 1rem 1.2rem; border-radius: 14px; border: 1.5px solid var(--border-color); }
+  .milestone-header-v2 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .milestone-label { font-weight: 800; font-size: 1rem; color: var(--text-main); }
+  .milestone-pct-badge { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; margin-top: 0.3rem; }
+  .milestone-pct-deposit { background: rgba(16,185,129,0.12); color: #059669; }
+  .milestone-pct-remaining { background: rgba(99,102,241,0.12); color: #6366f1; }
+  .milestone-amount-block { text-align: right; }
+  .milestone-amount-num { font-size: 1.4rem; font-weight: 900; color: var(--text-main); }
+  .milestone-amount-egp { font-size: 0.8rem; color: var(--gray-500); margin-left: 2px; font-weight: 700; }
+  .milestone-status-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+  .ms-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+  .ms-badge-escrow { background: rgba(37,99,235,0.1); color: #2563eb; }
+  .ms-badge-paid { background: rgba(16,185,129,0.1); color: #059669; }
+  .ms-badge-review { background: rgba(245,158,11,0.1); color: #d97706; }
+  .ms-badge-pending { background: rgba(156,163,175,0.15); color: var(--gray-500); }
+  .ms-badge-gray { background: var(--gray-100); color: var(--gray-500); padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+  .ms-hint { font-size: 0.78rem; color: var(--gray-500); font-style: italic; }
+
+  /* Milestone Summary Sidebar */
+  .summary-milestone-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1rem; border-radius: 12px; margin-bottom: 0.6rem; border: 1.5px solid var(--border-color); }
+  .smr-funded { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.04); }
+  .smr-pending { background: var(--gray-100); }
+
+  /* Timeline */
+
+  .timeline-container { position: relative; padding-left: 20px; }
+  .timeline-container::before { content: ''; position: absolute; left: 35px; top: 0; bottom: 0; width: 2px; background: var(--gray-200); }
+  .timeline-item { position: relative; margin-bottom: 2rem; padding-left: 50px; }
+  .timeline-icon { position: absolute; left: 0; top: 0; width: 32px; height: 32px; background: var(--gray-200); color: var(--gray-600); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1; border: 4px solid var(--card-bg); }
+  .timeline-content h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+  .timeline-content p { margin: 0; color: var(--gray-600); font-size: 0.95rem; }
+  .timeline-item.completed .timeline-icon { background: #10b981; color: white; }
+  .timeline-item.active .timeline-icon { background: var(--primary); color: white; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.2); }
+  .timeline-item.warning .timeline-icon { background: #f59e0b; color: white; }
+  .text-success { color: #10b981 !important; font-weight: 500; }
+  .text-warning { color: #f59e0b !important; font-weight: 500; }
+  
+  /* Milestone Box */
+  .milestone-box { background: var(--gray-100); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+  .milestone-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .milestone-price { font-weight: bold; color: var(--text-main); font-size: 1.1rem; }
+  .badge-blue { background: rgba(59, 130, 246, 0.1); color: #2563eb; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+  .badge-green { background: rgba(16, 185, 129, 0.1); color: #059669; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+  .badge-orange { background: rgba(245, 158, 11, 0.1); color: #d97706; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+  
+  /* Action Buttons */
+  .action-buttons-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-success-large { background: #10b981; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: var(--radius-sm); font-weight: bold; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+  .btn-success-large:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+  .btn-warning-outline { background: transparent; border: 1px solid #f59e0b; color: #d97706; padding: 0.8rem 1.5rem; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: var(--transition); }
+  .btn-warning-outline:hover { background: rgba(245, 158, 11, 0.1); }
+  
+  /* ── Order Item Cards (oi-card) ────────────────────────── */
+  .oi-card {
+    display: flex; align-items: center; gap: 1.8rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    border: 1.5px solid var(--border-color);
+    background: var(--card-bg);
+    margin-bottom: 1.2rem;
+    transition: all 0.3s ease;
+  }
+  .oi-card:last-child { margin-bottom: 0; }
+  .oi-card:hover {
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 8px 30px rgba(79,70,229,0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Image */
+  .oi-img-wrap {
+    position: relative; flex-shrink: 0;
+    width: 100px; height: 100px;
+    border-radius: 16px; overflow: hidden;
+    border: 1.5px solid var(--border-color);
+  }
+  .oi-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .oi-card:hover .oi-img { transform: scale(1.07); }
+  .oi-img-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(79,70,229,0.04));
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); font-size: 2rem;
+  }
+  .oi-category-badge {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+    color: white; font-size: 0.65rem; font-weight: 800;
+    padding: 0.5rem 0.4rem 0.3rem;
+    text-align: center; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Details */
+  .oi-details { flex: 1; min-width: 0; }
+  .oi-title {
+    display: block;
+    font-weight: 800; font-size: 1.1rem;
+    color: var(--gray-900); text-decoration: none;
+    margin-bottom: 0.9rem; line-height: 1.4;
+    transition: color 0.2s ease;
+  }
+  .oi-title:hover { color: var(--primary); text-decoration: none; }
+  .oi-seller { display: flex; align-items: center; gap: 0.8rem; }
+  .oi-seller-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    color: white; font-weight: 900; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .oi-seller-info { display: flex; flex-direction: column; }
+  .oi-seller-label { font-size: 0.7rem; color: var(--gray-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .oi-seller-name { font-size: 0.9rem; font-weight: 700; color: var(--gray-700); }
+
+  /* Price block */
+  .oi-price-block {
+    flex-shrink: 0; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    min-width: 100px;
+  }
+  .oi-qty-pill {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(99,102,241,0.08);
+    color: var(--primary); padding: 0.3rem 0.9rem;
+    border-radius: 50px; font-size: 0.8rem; font-weight: 800;
+    border: 1px solid rgba(99,102,241,0.15);
+  }
+  .oi-price-val {
+    font-size: 1.8rem; font-weight: 950;
+    color: var(--gray-900); letter-spacing: -0.5px; line-height: 1;
+  }
+  .oi-price-currency { font-size: 0.75rem; font-weight: 800; color: var(--gray-400); text-transform: uppercase; }
+
+  /* Dark mode OI cards */
+  html.dark-mode .oi-card {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .oi-card:hover {
+    background: rgba(99,102,241,0.06);
+    border-color: rgba(99,102,241,0.3);
+    box-shadow: 0 8px 30px rgba(99,102,241,0.12);
+  }
+  html.dark-mode .oi-img-wrap { border-color: rgba(255,255,255,0.1); }
+  html.dark-mode .oi-img-placeholder { background: rgba(99,102,241,0.1); }
+  html.dark-mode .oi-title { color: #e2e8f0; }
+  html.dark-mode .oi-title:hover { color: #818cf8; }
+  html.dark-mode .oi-seller-name { color: #94a3b8; }
+  html.dark-mode .oi-qty-pill { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.25); }
+  html.dark-mode .oi-price-val { color: #f1f5f9; }
+
+
+  /* ── Sidebar ──────────────────────────────────────────── */
+  .order-summary-card {
+    background: var(--card-bg);
+    padding: 0;
+    border-radius: 24px;
+    border: 1.5px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.07);
+  }
+
+  /* Summary card header */
+  .summary-card-header {
+    display: flex; align-items: center; gap: 1.2rem;
+    padding: 1.8rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(79,70,229,0.02));
+  }
+  .summary-card-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white; display: flex; align-items: center;
+    justify-content: center; font-size: 1.3rem;
+    box-shadow: 0 8px 20px rgba(245,158,11,0.3); flex-shrink: 0;
+  }
+  .order-summary-card h3 {
+    margin: 0; font-size: 1.15rem; font-weight: 800;
+    color: var(--gray-900);
+  }
+  .summary-order-id {
+    font-size: 0.78rem; color: var(--gray-400);
+    font-weight: 700; font-family: monospace; margin-top: 0.15rem;
+  }
+
+  /* Total block */
+  .summary-total-block {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .summary-total-label {
+    font-size: 0.78rem; font-weight: 800; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem;
+  }
+  .summary-total-value {
+    font-size: 2.2rem; font-weight: 950;
+    color: var(--gray-900); letter-spacing: -1px; line-height: 1.1;
+  }
+  .summary-total-currency {
+    font-size: 1rem; font-weight: 700;
+    color: var(--gray-400); letter-spacing: 0;
+  }
+
+  /* Rest of summary */
+  .order-summary-card .summary-row,
+  .order-summary-card .summary-milestone-row,
+  .order-summary-card .summary-divider,
+  .order-summary-card .payment-method-info {
+    margin-left: 2rem; margin-right: 2rem;
+  }
+  .order-summary-card .payment-method-info { padding-bottom: 2rem; }
+
+  /* Paid via row */
+  .paid-via-row {
+    display: flex; align-items: center; gap: 0.8rem;
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 14px; padding: 0.9rem 1.1rem;
+    margin-top: 0.5rem;
+  }
+  .paid-via-row > i { font-size: 1.3rem; flex-shrink: 0; }
+
+  /* Pay Now Button */
+  .pay-now-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.7rem; width: 82%; margin-top: 0.5rem;
+    padding: 1.1rem 2rem; border-radius: 16px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white; font-weight: 900; font-size: 1.1rem;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(79,70,229,0.35);
+    transition: all 0.3s ease;
+  }
+  .pay-now-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 35px rgba(79,70,229,0.45);
+    color: white; text-decoration: none;
+  }
+
+  /* Dark mode sidebar */
+  html.dark-mode .order-summary-card {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+  }
+  html.dark-mode .summary-card-header {
+    background: rgba(99,102,241,0.08);
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .order-summary-card h3 { color: #f1f5f9; }
+  html.dark-mode .summary-total-block { border-color: rgba(255,255,255,0.08); }
+  html.dark-mode .summary-total-value { color: #f1f5f9; }
+  html.dark-mode .paid-via-row {
+    background: rgba(16,185,129,0.08);
+    border-color: rgba(16,185,129,0.25);
+  }
+  html.dark-mode .paid-via-row > div { color: #e2e8f0; }
+  html.dark-mode .summary-total-block { border-color: rgba(255,255,255,0.07); }
+
+  .summary-row { display: flex; justify-content: space-between; margin-bottom: 1rem; color: var(--gray-800); margin-top: 35px; }
+  .summary-divider { height: 1px; background: var(--border-color); margin: 1.5rem 0; }
+  .total-row { font-size: 1.25rem; font-weight: bold; color: var(--text-main); }
+  .support-card { background: var(--gray-100); padding: 1.5rem; border-radius: var(--radius-lg); text-align: center; }
+  .support-card h3 { margin-top: 0; font-size: 1.1rem; }
+  .support-card p { font-size: 0.9rem; color: var(--gray-600); margin-bottom: 1rem; line-height: 1.5; }
+
+  /* Progress Tracker Tasks */
+  .task-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .task-item { padding: 0.9rem 1.2rem; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--card-bg); transition: all 0.25s ease; }
+  .task-item:hover { border-color: var(--primary); }
+  .task-item.task-done { background: rgba(16, 185, 129, 0.03); border-color: rgba(16, 185, 129, 0.2); }
+  .task-toggle { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border-color); background: var(--card-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: all 0.2s; }
+  .task-toggle:hover { border-color: var(--primary); }
+  .task-checked { background: #10b981; border-color: #10b981; color: white; }
+  .task-unchecked { background: transparent; }
+  .task-delete { background: transparent; border: none; color: var(--gray-400); cursor: pointer; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.2s; flex-shrink: 0; }
+  .task-delete:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+  .badge-gray { background: var(--gray-100); color: var(--gray-500); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+
+  /* Draft Submissions */
+  .drafts-grid { display: flex; flex-direction: column; gap: 1rem; }
+  .draft-card { display: flex; align-items: center; gap: 1.2rem; padding: 1.2rem 1.5rem; border-radius: 16px; border: 1.5px solid var(--border-color); background: var(--card-bg); transition: all 0.25s ease; }
+  .draft-card:hover { border-color: var(--primary); box-shadow: 0 4px 20px rgba(26, 115, 232, 0.08); }
+  .draft-preview { flex-shrink: 0; }
+  .draft-img-preview { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--border-color); }
+  .draft-file-icon { width: 60px; height: 60px; border-radius: 10px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--primary); border: 1.5px solid var(--border-color); }
+  .draft-file-icon .fa-file-pdf { color: #ef4444; }
+  .draft-file-icon .fa-file-word { color: #2563eb; }
+  .draft-file-icon .fa-file-archive { color: #f59e0b; }
+  .draft-file-icon .fa-file-video { color: #7c3aed; }
+  .draft-info { flex: 1; min-width: 0; }
+  .draft-ext-badge { background: rgba(26, 115, 232, 0.1); color: var(--primary); padding: 1px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; margin-right: 0.3rem; }
+  .draft-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+  .draft-btn { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; text-decoration: none; background: transparent; }
+  .draft-btn-download { color: var(--primary); border-color: rgba(26, 115, 232, 0.3); }
+  .draft-btn-download:hover { background: rgba(26, 115, 232, 0.1); border-color: var(--primary); }
+  .draft-btn-delete { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+  .draft-btn-delete:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+
+  /* Activity Feed */
+  .activity-post-form { margin-bottom: 1.5rem; }
+  .activity-input-row { display: flex; align-items: center; gap: 0.8rem; }
+  .activity-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; color: white; flex-shrink: 0; }
+  .activity-avatar-sm { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 900; color: white; flex-shrink: 0; margin-top: 2px; }
+  .av-freelancer { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+  .av-client { background: linear-gradient(135deg, var(--primary), #3b82f6); }
+  .activity-textarea { width: 93%; padding: 0.7rem 1rem; border-radius: 14px; border: 1.5px solid var(--border-color); background: var(--card-bg); font-size: 0.9rem; resize: vertical; font-family: inherit; min-height: 56px; transition: border-color 0.2s; }
+  .activity-textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); }
+  .activity-send-btn { width: 44px; height: 44px; border-radius: 12px; border: none; background: var(--primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; transition: all 0.2s; }
+  .activity-send-btn:hover { background: #1557b0; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); }
+  .activity-list { display: flex; flex-direction: column; gap: 1rem; }
+  .activity-item { display: flex; gap: 0.7rem; align-items: flex-start; }
+  .activity-bubble { flex: 1; background: var(--gray-100); padding: 0.8rem 1.1rem; border-radius: 0 14px 14px 14px; border: 1px solid var(--border-color); }
+  .activity-freelancer .activity-bubble { background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.15); border-radius: 0 14px 14px 14px; }
+  .activity-client .activity-bubble { background: rgba(26, 115, 232, 0.05); border-color: rgba(26, 115, 232, 0.15); border-radius: 14px 0 14px 14px; }
+  .activity-client { flex-direction: row-reverse; }
+  .activity-bubble-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+  .activity-author { font-weight: 800; font-size: 0.85rem; color: var(--text-main); }
+  .activity-role { font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .role-freelancer { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+  .role-client { background: rgba(26, 115, 232, 0.12); color: var(--primary); }
+  .activity-time { font-size: 0.75rem; color: var(--gray-400); margin-left: auto; }
+  .activity-body { font-size: 0.9rem; color: var(--gray-700); line-height: 1.6; word-break: break-word; }
+
+  /* ═══════════════════════════════════════════
+     DARK MODE COMPREHENSIVE FIXES
+  ═══════════════════════════════════════════ */
+
+  /* Page header */
+  html.dark-mode .order-detail-page { color: #e2e8f0; }
+  html.dark-mode .order-detail-header { border-color: rgba(255,255,255,0.08); }
+  html.dark-mode .order-detail-header h1 { color: #f1f5f9; }
+  html.dark-mode .order-date { color: #94a3b8; }
+
+  /* Sections */
+  html.dark-mode .order-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  html.dark-mode .order-section h2 {
+    color: #f1f5f9;
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  /* Timeline */
+  html.dark-mode .timeline-container::before { background: rgba(255,255,255,0.08); }
+  html.dark-mode .timeline-icon {
+    background: rgba(255,255,255,0.08);
+    color: #94a3b8;
+    border-color: rgba(15,23,42,1);
+  }
+  html.dark-mode .timeline-item.completed .timeline-icon { background: #10b981; color: white; border-color: rgba(15,23,42,1); }
+  html.dark-mode .timeline-item.active .timeline-icon { background: #6366f1; color: white; }
+  html.dark-mode .timeline-item.warning .timeline-icon { background: #f59e0b; color: white; }
+  html.dark-mode .timeline-content h4 { color: #f1f5f9; }
+  html.dark-mode .timeline-content p { color: #94a3b8; }
+
+  /* Milestone boxes */
+  html.dark-mode .milestone-box-v2 {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.1);
+  }
+  html.dark-mode .milestone-label { color: #e2e8f0; }
+  html.dark-mode .milestone-amount-num { color: #f1f5f9; }
+  html.dark-mode .ms-badge-gray { background: rgba(255,255,255,0.06); color: #94a3b8; }
+  html.dark-mode .ms-hint { color: #64748b; }
+
+  /* Task list */
+  html.dark-mode .task-item {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .task-item:hover { border-color: #6366f1; }
+  html.dark-mode .task-item.task-done { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.15); }
+  html.dark-mode .task-toggle { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+  html.dark-mode .task-toggle:hover { border-color: #6366f1; }
+
+  /* Draft cards */
+  html.dark-mode .draft-card {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .draft-card:hover { border-color: #6366f1; }
+  html.dark-mode .draft-file-icon {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+  }
+  html.dark-mode .draft-info > div:first-child { color: #e2e8f0; }
+  html.dark-mode .draft-btn { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
+  html.dark-mode #draftUploadForm {
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+  html.dark-mode #draftUploadForm label { color: #94a3b8 !important; }
+
+  /* Revision form */
+  html.dark-mode #revisionForm {
+    background: rgba(255,255,255,0.04) !important;
+    border-radius: 12px;
+  }
+  html.dark-mode #revisionForm .form-label { color: #94a3b8; }
+
+  /* Activity feed */
+  html.dark-mode .activity-textarea {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    color: #e2e8f0;
+  }
+  html.dark-mode .activity-textarea::placeholder { color: #475569; }
+  html.dark-mode .activity-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  html.dark-mode .activity-bubble {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .activity-freelancer .activity-bubble {
+    background: rgba(99,102,241,0.08);
+    border-color: rgba(99,102,241,0.2);
+  }
+  html.dark-mode .activity-client .activity-bubble {
+    background: rgba(59,130,246,0.08);
+    border-color: rgba(59,130,246,0.2);
+  }
+  html.dark-mode .activity-author { color: #e2e8f0; }
+  html.dark-mode .activity-body { color: #cbd5e1; }
+  html.dark-mode .activity-time { color: #475569; }
+
+  /* Sidebar summary card */
+  html.dark-mode .order-summary-card {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.1);
+  }
+  html.dark-mode .order-summary-card h3 {
+    color: #f1f5f9;
+    border-color: rgba(255,255,255,0.08);
+  }
+  html.dark-mode .summary-row { color: #cbd5e1; }
+  html.dark-mode .summary-divider { background: rgba(255,255,255,0.08); }
+  html.dark-mode .summary-milestone-row {
+    border-color: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+  }
+  html.dark-mode .smr-funded { border-color: rgba(16,185,129,0.25) !important; background: rgba(16,185,129,0.06) !important; }
+  html.dark-mode .smr-pending { background: rgba(255,255,255,0.03) !important; }
+
+  /* Support card */
+  html.dark-mode .support-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  html.dark-mode .support-card h3 { color: #f1f5f9; }
+  html.dark-mode .support-card p { color: #94a3b8; }
+
+  /* Payment info text */
+  html.dark-mode .payment-method-info { color: #94a3b8; }
+
+  /* Order items */
+  html.dark-mode .order-rendered-item { border-color: rgba(255,255,255,0.07); }
+  html.dark-mode .item-details h4 a { color: #e2e8f0; }
+  html.dark-mode .item-details a:hover { color: #818cf8; }
+  html.dark-mode .item-img-placeholder { background: rgba(255,255,255,0.05); color: #475569; }
+  html.dark-mode .provider-info { color: #64748b; }
+  html.dark-mode .item-price .qty { color: #64748b; }
+  html.dark-mode .item-price .price-val { color: #e2e8f0; }
+
+  /* Status badges in dark mode */
+  html.dark-mode .status-badge { filter: brightness(1.15); }
+
+  /* Progress bar track */
+  html.dark-mode #progress-fill { background: linear-gradient(90deg, #6366f1, #10b981) !important; }
+
+  /* General form inputs in dark */
+  html.dark-mode input[type="text"].form-input,
+  html.dark-mode .order-section input[type="text"],
+  html.dark-mode .order-section textarea {
+    background: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #e2e8f0 !important;
+  }
+
+  /* ═══════════════════════════════════════════
+     LIGHT MODE POLISH
+  ═══════════════════════════════════════════ */
+  .order-section { box-shadow: 0 2px 20px rgba(0,0,0,0.06); transition: box-shadow 0.3s ease; }
+  .order-section:hover { box-shadow: 0 8px 30px rgba(79,70,229,0.08); }
+  .order-summary-card { box-shadow: 0 4px 25px rgba(0,0,0,0.07); transition: box-shadow 0.3s ease; }
+  .draft-card { transition: all 0.25s ease; }
+  .task-item { transition: all 0.2s ease; }
+
+  /* Header badge glow on hover */
+  .status-badge { transition: all 0.2s ease; }
+  .status-badge:hover { transform: translateY(-1px); }
+
+</style>
+
+<script>
+  // Dynamic progress bar
+  document.addEventListener('DOMContentLoaded', function() {
+    const fill = document.getElementById('progress-fill');
+    if (!fill) return;
+    const total = parseInt(fill.dataset.total || '0');
+    const completedStr = fill.dataset.completed || '';
+    const completed = (completedStr.match(/1/g) || []).length;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    fill.style.width = pct + '%';
+    // Update header count
+    const tracker = document.getElementById('progress-tracker-section');
+    if (tracker) {
+      const hdr = tracker.querySelector('h2');
+      if (hdr && total > 0) {
+        hdr.insertAdjacentHTML('afterend', '<p style="margin: -1rem 0 1rem 0; font-size: 0.85rem; color: var(--gray-500); font-weight: 600;">' + completed + ' / ' + total + ' tasks &mdash; ' + pct + '% complete</p>');
+      }
+    }
+  });
+</script>
+{% endblock %}

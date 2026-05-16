@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment" %}{% endblock %}
+
+{% block content %}
+<div class="me">
+    <h2 class="checkout-title {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">💳 {% trans "Payment" %}</h2>
+
+    <div class="payment-summary {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>{% trans "Order Summary" %}</h3>
+        <p><strong>{% trans "Order ID" %}:</strong> #{{ order.id }}</p>
+        <p><strong>{% trans "Total Amount" %}:</strong> {{ total }} EGP</p>
+    </div>
+
+    <!-- Dummy payment form -->
+    <form method="post" class="checkout-form" style="display: flex; flex-direction: column; gap: 15px; max-width: 400px; margin: 0 auto;">
+        {% csrf_token %}
+        <div>
+            <label for="card_name" style="display: block; margin-bottom: 5px;">{% trans "Name on Card" %}</label>
+            <input type="text" id="card_name" name="card_name" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div>
+            <label for="card_number" style="display: block; margin-bottom: 5px;">{% trans "Card Number" %}</label>
+            <input type="text" id="card_number" name="card_number" placeholder="**** **** **** ****" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+                <label for="expiry_date" style="display: block; margin-bottom: 5px;">{% trans "Expiry Date" %}</label>
+                <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div style="flex: 1;">
+                <label for="cvv" style="display: block; margin-bottom: 5px;">{% trans "CVV" %}</label>
+                <input type="text" id="cvv" name="cvv" placeholder="123" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+        </div>
+        <button type="submit" class="confirm-btn {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}" style="margin-top: 15px; padding: 12px; font-size: 16px;">{% trans "Pay Now" %} ({{ total }} EGP)</button>
+    </form>
+</div>
+{% endblock %}

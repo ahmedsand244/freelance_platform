@@ -1,0 +1,94 @@
+{% extends 'admin/base.html' %}
+{% load static i18n %}
+
+{% block title %}{{ title }} | Myths Solutions {% trans "Administration" %}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/admin_custom.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Build Top Navbar
+        const header = document.getElementById('header');
+        if (header) {
+            // Sidebar Toggle
+            const toggleBtn = document.createElement('div');
+            toggleBtn.className = 'sidebar-toggle';
+            toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            toggleBtn.onclick = () => document.body.classList.toggle('sidebar-collapsed');
+            header.prepend(toggleBtn);
+            
+            // Search Bar
+            const searchWrap = document.createElement('div');
+            searchWrap.className = 'admin-search-wrap';
+            searchWrap.innerHTML = '<i class="fas fa-search"></i><input type="text" placeholder="Search across platform...">';
+            header.appendChild(searchWrap);
+            
+            // User Menu & Notifications
+            const userTools = document.getElementById('user-tools');
+            if (userTools) {
+                const notifBtn = document.createElement('div');
+                notifBtn.className = 'admin-notif-btn';
+                notifBtn.innerHTML = '<i class="fas fa-bell"></i><span class="badge">3</span>';
+                userTools.prepend(notifBtn);
+                
+                // Wrap Welcome Message
+                const welcomeSpan = userTools.querySelector('strong');
+                if (welcomeSpan) {
+                    const avatar = document.createElement('div');
+                    avatar.className = 'admin-avatar';
+                    avatar.innerHTML = '<i class="fas fa-user-astronaut"></i>';
+                    welcomeSpan.parentNode.insertBefore(avatar, welcomeSpan);
+                }
+            }
+        }
+
+        // Add Statistics Cards to Dashboard
+        const contentMain = document.getElementById('content-main');
+        if (contentMain && window.location.pathname.endsWith('/admin/')) {
+            const statsHtml = `
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366F1;"><i class="fas fa-users"></i></div>
+                    <div class="stat-info"><h3>Total Users</h3><p>2,451</p></div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-info"><h3>Active Orders</h3><p>845</p></div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-info"><h3>Revenue</h3><p>$45,210</p></div>
+                </div>
+            </div>`;
+            contentMain.insertAdjacentHTML('afterbegin', statsHtml);
+        }
+        
+        // Add Icons to Sidebar using JS
+        const appLabels = document.querySelectorAll('.nav-sidebar .app-label');
+        appLabels.forEach(label => {
+            const text = label.textContent.trim().toLowerCase();
+            let icon = 'fas fa-box';
+            if (text.includes('auth')) icon = 'fas fa-shield-alt';
+            if (text.includes('accounts')) icon = 'fas fa-users';
+            if (text.includes('services')) icon = 'fas fa-briefcase';
+            label.innerHTML = `<i class="${icon}"></i> ${label.textContent}`;
+        });
+    });
+  </script>
+{% endblock %}
+
+{% block branding %}
+<div id="branding">
+  <h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+      Myths Solutions
+    </a>
+  </h1>
+</div>
+{% endblock %}

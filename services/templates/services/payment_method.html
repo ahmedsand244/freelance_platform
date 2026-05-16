@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Secure Method Selection" %} — Freelance Yard{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 4rem; padding-bottom: 8rem; max-width: 800px;">
+  
+  <!-- Step Progress Indicator -->
+  <div class="checkout-steps reveal" style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 5rem;">
+    <div style="display: flex; align-items: center; gap: 0.8rem; opacity: 0.5;">
+      <span style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: 700;">1</span>
+      <span style="font-weight: 600;">{% trans "Review" %}</span>
+      <div style="width: 50px; height: 1px; background: var(--border-color);"></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.8rem;">
+      <span style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);">2</span>
+      <span style="font-weight: 700; color: var(--primary);">{% trans "Method" %}</span>
+      <div style="width: 50px; height: 1px; background: var(--border-color); opacity: 0.5;"></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.8rem; opacity: 0.3;">
+      <span style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--gray-400); display: flex; align-items: center; justify-content: center;">3</span>
+      <span>{% trans "Paid" %}</span>
+    </div>
+  </div>
+
+  <div class="center reveal" style="margin-bottom: 4rem; text-align: center;">
+    <h2 class="section-heading" style="font-size: 2.8rem; margin-bottom: 1rem;">{% trans "Select Method" %}</h2>
+    <div style="display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+      <div style="display: inline-flex; align-items: baseline; gap: 1rem; padding: 1rem 2.5rem; background: rgba(79, 70, 229, 0.05); border-radius: 50px; border: 1px solid rgba(79, 70, 229, 0.1);">
+        <span style="font-size: 1rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase;">{% trans "30% Deposit Amount" %}</span>
+        <span style="font-size: 2.2rem; font-weight: 900; color: var(--primary);">{{ deposit|floatformat:2 }} <span style="font-size: 0.9rem; color: var(--gray-400);">{% trans "EGP" %}</span></span>
+      </div>
+      <span style="font-size: 0.9rem; color: var(--gray-500); font-weight: 600;">{% trans "Total Order Value:" %} {{ total|floatformat:2 }} {% trans "EGP" %}</span>
+    </div>
+  </div>
+
+  <!-- Form Start -->
+  <form method="post" action="{% url 'process_payment' order.id %}">
+    {% csrf_token %}
+    
+    <div class="row reveal" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 3rem;">
+      
+      <!-- Card Option -->
+      <label class="premium-about-card method-selector" style="cursor: pointer; padding: 2.5rem; border: 2px solid var(--border-color); position: relative; transition: all 0.3s ease;">
+        <input type="radio" name="method" value="card" checked style="position: absolute; opacity: 0;" onchange="updateMethodUI()">
+        <div class="method-icon-wrap" style="width: 60px; height: 60px; background: rgba(79, 70, 229, 0.1); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--primary); font-size: 1.8rem; transition: all 0.3s ease;">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; font-weight: 800;">{% trans "Plastic Money" %}</h4>
+        <p style="margin:0; font-size: 0.9rem; color: var(--gray-500); line-height: 1.5;">{% trans "Visa, Mastercard, & Meeza Support." %}</p>
+      </label>
+
+      <!-- Wallet Option -->
+      <label class="premium-about-card method-selector" style="cursor: pointer; padding: 2.5rem; border: 2px solid var(--border-color); position: relative; transition: all 0.3s ease;">
+        <input type="radio" name="method" value="wallet" style="position: absolute; opacity: 0;" onchange="updateMethodUI()">
+        <div class="method-icon-wrap" style="width: 60px; height: 60px; background: rgba(79, 70, 229, 0.05); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--gray-400); font-size: 1.8rem; transition: all 0.3s ease;">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; font-weight: 800;">{% trans "Smart Wallet" %}</h4>
+        <p style="margin:0; font-size: 0.9rem; color: var(--gray-500); line-height: 1.5;">{% trans "Vodafone Cash & Mobile Banking." %}</p>
+      </label>
+    </div>
+
+    <!-- Dynamic Wallet Input -->
+    <div id="wallet-input-container" class="reveal" style="display: none; margin-bottom: 3rem;">
+      <div class="premium-about-card" style="padding: 2.5rem; background: rgba(79, 70, 229, 0.02); border: 1.5px dashed var(--primary);">
+        <label for="mobile_number" class="form-label" style="font-weight: 700; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "Register Wallet Number" %}</label>
+        <div style="position: relative;">
+          <i class="fas fa-phone-alt" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.1rem; opacity: 0.6;"></i>
+          <input type="text" id="mobile_number" name="mobile_number" placeholder="01xxxxxxxxx" class="form-input" style="padding-left: 3.2rem; border-radius: 15px; background: var(--card-bg);" autocomplete="off">
+        </div>
+        <p style="margin: 1rem 0 0 0; font-size: 0.85rem; color: var(--gray-500);">{% trans "We will send a payment push to this number." %}</p>
+      </div>
+    </div>
+
+    <!-- Final CTA -->
+    <div class="reveal">
+      <button type="submit" class="btn-primary buy-btn-glow" style="width: 100%; border-radius: 20px; padding: 1.6rem; font-size: 1.3rem; font-weight: 900; box-shadow: 0 15px 40px rgba(79, 70, 229, 0.3); border: none;">
+        <i class="fas fa-shield-check" style="margin-right: 0.8rem;"></i> {% trans "Continue to Direct Payment" %}
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Trust Badges Strip -->
+  <div class="reveal center" style="margin-top: 5rem; text-align: center; opacity: 0.6; display: flex; justify-content: center; align-items: center; gap: 3rem; flex-wrap: wrap;">
+    <i class="fab fa-cc-visa" style="font-size: 2.5rem;"></i>
+    <i class="fab fa-cc-mastercard" style="font-size: 2.5rem;"></i>
+    <img src="{% static 'images/meeza-logo.png' %}" style="height: 30px; filter: grayscale(1) invert(0.5);" alt="Meeza">
+    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.2rem;">
+      <i class="fas fa-wallet" style="color: var(--primary);"></i> {% trans "Wallet Apps" %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+function updateMethodUI() {
+  const selectors = document.querySelectorAll('.method-selector');
+  const walletInput = document.getElementById('wallet-input-container');
+  
+  selectors.forEach(s => {
+    const radio = s.querySelector('input');
+    const iconWrap = s.querySelector('.method-icon-wrap');
+    
+    if (radio.checked) {
+      s.style.borderColor = 'var(--primary)';
+      s.style.background = 'rgba(79, 70, 229, 0.03)';
+      iconWrap.style.background = 'var(--primary)';
+      iconWrap.style.color = '#ffffff';
+      
+      if (radio.value === 'wallet') {
+        walletInput.style.display = 'block';
+      } else {
+        walletInput.style.display = 'none';
+      }
+    } else {
+      s.style.borderColor = 'var(--border-color)';
+      s.style.background = 'var(--card-bg)';
+      iconWrap.style.background = 'rgba(79, 70, 229, 0.05)';
+      iconWrap.style.color = 'var(--gray-400)';
+    }
+  });
+}
+
+// Initial Run
+window.onload = updateMethodUI;
+</script>
+
+<style>
+.method-selector:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary) !important;
+}
+
+html.dark-mode .premium-about-card {
+  background: rgba(25, 25, 25, 0.8) !important;
+}
+html.dark-mode .form-label, 
+html.dark-mode h4 {
+  color: #ffffff !important;
+}
+</style>
+{% endblock %}

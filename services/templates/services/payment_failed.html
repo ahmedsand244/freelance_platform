@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Transaction Interrupted" %} — Freelance Yard{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 6rem; padding-bottom: 8rem; max-width: 700px; text-align: center;">
+
+  <div class="reveal center" style="margin-bottom: 3rem;">
+    <div style="width: 120px; height: 120px; border-radius: 50%; background: rgba(79, 70, 229, 0.05); display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--primary); font-size: 4rem; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div style="position: absolute; top: -5px; right: -5px; width: 40px; height: 40px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); color: #e74c3c; font-size: 1.2rem;">
+        <i class="fas fa-times"></i>
+      </div>
+    </div>
+    
+    <h2 class="section-heading" style="font-size: 2.8rem; margin-bottom: 1rem;">{% trans "Payment Interrupted" %}</h2>
+    <p style="color: var(--gray-500); font-weight: 600; font-size: 1.15rem; max-width: 500px; margin: 0 auto;">{% trans "We couldn't secure the funds for this order. This might be due to a connection issue or card restriction." %}</p>
+  </div>
+
+  <div class="premium-about-card reveal" style="padding: 3rem; border-radius: 30px; border: 1.5px solid var(--border-color); background: rgba(79, 70, 229, 0.01); box-shadow: 0 30px 60px rgba(0,0,0,0.05); margin-bottom: 3rem;">
+    <h4 style="font-weight: 800; color: var(--gray-900); margin-bottom: 1.5rem; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">{% trans "System Diagnosis" %}</h4>
+    
+    {% if error %}
+    <div style="background: rgba(0,0,0,0.03); padding: 1.5rem; border-radius: 15px; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #e74c3c; border: 1px dashed rgba(231, 76, 60, 0.3); display: block; word-break: break-all; margin-bottom: 2rem;">
+      {{ error }}
+    </div>
+    {% else %}
+    <div style="background: rgba(0,0,0,0.03); padding: 1.5rem; border-radius: 15px; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--gray-600); margin-bottom: 2rem;">
+      {% trans "No technical error code provided by the gateway." %}
+    </div>
+    {% endif %}
+
+    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+      {% if order %}
+      <a href="{% url 'payment_method' order.id %}" class="btn-primary buy-btn-glow" style="width: 100%; border-radius: 18px; padding: 1.4rem; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.8rem; text-decoration: none; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);">
+        <i class="fas fa-redo"></i> {% trans "Try Different Payment Method" %}
+      </a>
+      {% endif %}
+      
+      <div style="display: flex; gap: 1rem;">
+        <a href="{% url 'checkout' %}" style="flex: 1; padding: 1.2rem; border-radius: 18px; border: 1.5px solid var(--border-color); color: var(--gray-600); text-decoration: none; font-weight: 700; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--gray-600)'">
+          <i class="fas fa-shopping-cart" style="margin-right: 0.5rem;"></i> {% trans "Back to Cart" %}
+        </a>
+        <a href="{% url 'my_account' %}" style="flex: 1; padding: 1.2rem; border-radius: 18px; border: 1.5px solid var(--border-color); color: var(--gray-600); text-decoration: none; font-weight: 700; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.color='var(--gray-600)'">
+          <i class="fas fa-user-circle" style="margin-right: 0.5rem;"></i> {% trans "My Account" %}
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="reveal center" style="margin-top: 2rem; color: var(--gray-400); font-weight: 600; font-size: 0.9rem;">
+    <i class="fas fa-headset" style="margin-right: 0.5rem; color: var(--primary);"></i> {% trans "Need help? Contact support if this persists." %}
+  </div>
+
+</div>
+
+<style>
+html.dark-mode .premium-about-card {
+  background: rgba(25, 25, 25, 0.8) !important;
+}
+html.dark-mode h2, html.dark-mode h4 {
+  color: #ffffff !important;
+}
+</style>
+{% endblock %}

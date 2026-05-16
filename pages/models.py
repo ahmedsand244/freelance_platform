@@ -3,6 +3,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 
+
 class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -37,7 +38,6 @@ class Service(models.Model):
         return self.title
 
 
-
 class TeamMember(models.Model):
     name = models.CharField(max_length=100)
     role = models.CharField(max_length=200)
@@ -60,7 +60,6 @@ class TeamMember(models.Model):
         return self.name
 
 
-
 class Partner(models.Model):
     name = models.CharField(max_length=100)
     logo = models.ImageField(upload_to='partners/')
@@ -71,17 +70,16 @@ class Partner(models.Model):
             self.compress_logo()
 
     def compress_logo(self):
-    img = Image.open(self.logo.path)
+        img = Image.open(self.logo.path)
 
-    if img.mode in ("RGBA", "LA"):  # يعني الصورة فيها شفافية
-        img = img.convert("RGBA")
-        img.thumbnail((800, 800))
-        img.save(self.logo.path, format='PNG')
-    else:
-        img = img.convert("RGB")
-        img.thumbnail((800, 800))
-        img.save(self.logo.path, format='WEBP', quality=85)
-
+        if img.mode in ("RGBA", "LA"):  # لو فيها شفافية
+            img = img.convert("RGBA")
+            img.thumbnail((800, 800))
+            img.save(self.logo.path, format='PNG')
+        else:
+            img = img.convert("RGB")
+            img.thumbnail((800, 800))
+            img.save(self.logo.path, format='WEBP', quality=85)
 
     def __str__(self):
         return self.name

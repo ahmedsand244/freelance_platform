@@ -1,54 +1,114 @@
-{% extends 'base.html' %}
-{% load static %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Events & Organizers" %}{% endblock %}
 
 {% block content %}
-
-<div class="count">
-
-<!-- === Past Events Section === -->
-<h2 class="section-title {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">📅 {% trans "Past Events & Organizers" %}</h2>
-
-<div class="events-grid {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  {% for event in events %}
-  <div class="event-card">
-    <img src="{{ event.image.url }}" class="event-image" alt="{{ event.title }}">
-    <h3 class="event-title">{{ event.title }}</h3>
-    <p class="event-description">{{ event.description|truncatewords:25 }}</p>
-    <p class="event-date">📅 {{ event.date }}</p>
-    <div class="organizers-list">
-      <strong>{% trans "Organizers" %}:</strong>
-      <ul>
-        {% for organizer in event.organizers.all %}
-        <li>
-          <a href="{% url 'organizer_detail' organizer.id %}" class="organizer-link">
-            {{ organizer.name }}
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
+<div class="container" style="padding-top: 3rem;">
+  
+  <!-- Header Section -->
+  <div class="section-header-wrap">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">📅 {% trans "Experiences" %}</span>
+        <h1 class="section-heading">{% trans "Past Events & Top Organizers" %}</h1>
+        <p class="section-subtext">{% trans "Memorable moments brought to life by our professional teams" %}</p>
+      </div>
     </div>
   </div>
-  {% endfor %}
+
+  <!-- Events Grid -->
+  <div class="events-grid reveal">
+    {% for event in events %}
+      <article class="event-card reveal">
+        <div class="event-img-wrap">
+          {% if event.image %}
+            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-img" loading="lazy">
+          {% else %}
+             <div class="service-card-img-placeholder"><i class="fas fa-calendar-alt"></i></div>
+          {% endif %}
+        </div>
+        <div class="event-body">
+          <div class="event-date">
+            <i class="fas fa-calendar-day"></i> {{ event.date|date:"F d, Y" }}
+          </div>
+          <h3 class="event-title">{% trans event.title %}</h3>
+          {% trans event.description as trans_event_desc %}
+          <p class="event-desc">{{ trans_event_desc|truncatewords:20 }}</p>
+          
+          {% if event.organizers.all %}
+            <div class="event-organizers" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px;">
+                {% trans "Team" %}
+              </span>
+              <div class="organizer-pills" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                {% for organizer in event.organizers.all %}
+                  <a href="{% url 'organizer_detail' organizer.id %}" class="skill-tag" style="text-decoration: none; background: rgba(79, 70, 229, 0.05); color: var(--primary);">
+                    <i class="fas fa-user-check" style="font-size: 0.7rem;"></i> {{ organizer.name }}
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="empty-state" style="grid-column: 1 / -1;">
+        <i class="fas fa-calendar-minus"></i>
+        <p>{% trans "No events found." %}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Request Form Section -->
+  <div class="category-section reveal" style="margin-top: 6rem; background: linear-gradient(to bottom right, var(--card-bg), var(--gray-100));">
+    <div class="section-header-wrap" style="border-bottom: none; margin-bottom: 2rem;">
+      <div class="section-header">
+        <div>
+          <span class="section-badge" style="background: var(--primary); color: white;">🚀 {% trans "Plan" %}</span>
+          <h2 class="section-heading">{% trans "Request a Custom Event" %}</h2>
+          <p class="section-subtext">{% trans "Tell us your vision, and we'll handle the rest." %}</p>
+        </div>
+      </div>
+    </div>
+
+    <form method="POST" class="event-request-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">{% trans "Full Name" %}</label>
+        <input type="text" name="client_name" class="form-input" placeholder="{% trans 'Ward Mansour' %}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Email" %}</label>
+        <input type="email" name="email" class="form-input" placeholder="{% trans 'example@domain.com' %}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Phone" %}</label>
+        <input type="text" name="phone" class="form-input" placeholder="+20..." required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Event Title" %}</label>
+        <input type="text" name="event_name" class="form-input" placeholder="{% trans 'Ex: Tech Workshop 2024' %}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Desired Date" %}</label>
+        <input type="date" name="date" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "No. of Organizers" %}</label>
+        <input type="number" name="number_of_organizers" class="form-input" placeholder="2" required>
+      </div>
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label">{% trans "Additional Notes" %}</label>
+        <textarea name="notes" class="form-input form-textarea" placeholder="{% trans 'Describe your event requirements, special needs, etc...' %}"></textarea>
+      </div>
+      <div class="form-submit-wrap">
+        <button type="submit" class="btn-primary btn-large">
+          🚀 {% trans "Submit Request" %}
+        </button>
+      </div>
+    </form>
+  </div>
+
 </div>
-
-<hr class="section-divider">
-
-<!-- === Event Request Form Section === -->
-<h2 class="section-title {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">📝 {% trans "Request a New Event" %}</h2>
-
-<form method="POST" class="event-form {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  {% csrf_token %}
-  <input type="text" name="client_name" placeholder="{% trans 'Your Name' %}" required>
-  <input type="email" name="email" placeholder="{% trans 'Email Address' %}" required>
-  <input type="text" name="phone" placeholder="{% trans 'Phone Number' %}" required>
-  <input type="text" name="event_name" placeholder="{% trans 'Event Title' %}" required>
-  <input type="date" name="date" required>
-  <input type="number" name="number_of_organizers" placeholder="{% trans 'Number of Organizers Needed' %}" required>
-  <textarea name="notes" placeholder="{% trans 'Additional Notes' %}" rows="4"></textarea>
-  <button type="submit" class="submit-btn">🚀 {% trans "Submit Request" %}</button>
-</form>
-
-</div>
-
 {% endblock %}

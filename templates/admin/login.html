@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_custom.css' %}">
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="admin-login-container">
+    <div class="admin-login-card">
+        <div class="login-header">
+            <img src="{% static 'images/Myths Solutions.png' %}" alt="Logo" class="admin-login-logo">
+            <h2>{% trans "Admin Login" %}</h2>
+        </div>
+        
+        {% if form.errors and not form.non_field_errors %}
+        <p class="errornote">
+        {% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+        </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <p class="errornote">
+            {{ error }}
+        </p>
+        {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+            <div class="form-row">
+                {{ form.username.errors }}
+                <label for="id_username" class="required">{{ form.username.label }}:</label>
+                {{ form.username }}
+            </div>
+            <div class="form-row">
+                {{ form.password.errors }}
+                <label for="id_password" class="required">{{ form.password.label }}:</label>
+                {{ form.password }}
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+            
+            <div class="submit-row">
+                <input type="submit" value="{% trans 'Log in' %}">
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,72 +1,124 @@
-{% extends 'base.html' %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ organizer.name }} — {% trans "Organizer Profile" %}{% endblock %}
 
 {% block content %}
-<div class="profile-container">
-
-  <!-- Organizer Profile Info -->
-  <img src="{{ organizer.image.url }}" class="profile-image" alt="{{ organizer.name }}">
-  <h2 class="profile-name">{{ organizer.name }}</h2>
-  <p class="profile-bio">{{ organizer.bio }}</p>
-
-  <hr class="divider">
-
-  <!-- Work Gallery -->
-  <h3 class="section-title">📸 {% trans "Previous Work" %}</h3>
-  <div class="work-gallery">
-    {% for work in organizer.works.all %}
-      <div class="work-item">
-        <img src="{{ work.image.url }}" class="work-image" alt="{{ work.title }}">
-        <p class="work-title">{{ work.title }}</p>
+<div class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
+  
+  <!-- Profile Header Hero -->
+  <div class="premium-profile-header reveal" style="position: relative; margin-bottom: 3rem;">
+    <!-- Cover Photo placeholder/styled -->
+    <div class="profile-cover-wrap" style="height: 250px; border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--primary), #4338ca); position: relative; overflow: hidden;">
+      <div style="position: absolute; width: 100%; height: 100%; background: url('{% static 'img/pattern.webp' %}') repeat; opacity: 0.1;"></div>
+    </div>
+    
+    <div class="profile-info-overlay" style="display: flex; flex-direction: column; align-items: center; margin-top: -80px;">
+      <div class="avatar-container" style="position: relative;">
+        {% if organizer.image %}
+          <img src="{{ organizer.image.url }}" alt="{{ organizer.name }}" style="width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--card-bg); box-shadow: var(--shadow-lg); object-fit: cover; background: var(--card-bg);">
+        {% else %}
+          <div style="width: 160px; height: 160px; border-radius: 50%; border: 6px solid var(--card-bg); background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: 700;">
+            {{ organizer.name|first|upper }}
+          </div>
+        {% endif %}
+        <span style="position: absolute; bottom: 10px; right: 10px; width: 24px; height: 24px; background: #2ecc71; border: 4px solid var(--card-bg); border-radius: 50%;" title="{% trans 'Available' %}"></span>
       </div>
+      
+      <div class="profile-text center" style="margin-top: 1.5rem; text-align: center;">
+        <h1 class="section-heading" style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ organizer.name }}</h1>
+        <div style="display: flex; gap: 1rem; justify-content: center; align-items: center; margin-bottom: 1rem;">
+          <span class="section-badge"><i class="fas fa-certificate"></i> {% trans "Verified Organizer" %}</span>
+          <span class="section-badge" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;"><i class="fas fa-bolt"></i> {% trans "Top Rated" %}</span>
+        </div>
+        <p class="section-subtext" style="max-width: 700px; margin: 0 auto; color: var(--gray-600);">{% trans organizer.bio %}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-row reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
+    <div class="premium-about-card center" style="padding: 1.5rem; text-align: center;">
+      <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-star"></i></div>
+      <div style="font-size: 1.5rem; font-weight: 700;">{{ organizer.reviews.all|length|default:"0" }}</div>
+      <div style="color: var(--gray-500); font-size: 0.9rem;">{% trans "Review Score" %}</div>
+    </div>
+    <div class="premium-about-card center" style="padding: 1.5rem; text-align: center;">
+      <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-briefcase"></i></div>
+      <div style="font-size: 1.5rem; font-weight: 700;">{{ organizer.works.all|length|default:"0" }}</div>
+      <div style="color: var(--gray-500); font-size: 0.9rem;">{% trans "Projects Completed" %}</div>
+    </div>
+    <div class="premium-about-card center" style="padding: 1.5rem; text-align: center;">
+      <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-wallet"></i></div>
+      <div style="font-size: 1.5rem; font-weight: 700;">{{ organizer.price }} EGP</div>
+      <div style="color: var(--gray-500); font-size: 0.9rem;">{% trans "Starting Rate" %}</div>
+    </div>
+  </div>
+
+  <!-- Portfolio Section -->
+  <div class="section-header-wrap reveal" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+    <h3 class="section-heading" style="font-size: 1.8rem;">📸 {% trans "Proof of Excellence" %}</h3>
+  </div>
+
+  <div class="services-grid reveal" style="margin-bottom: 5rem;">
+    {% for work in organizer.works.all %}
+      <div class="premium-about-card" style="padding: 0; overflow: hidden; border: none;">
+        <img src="{{ work.image.url }}" alt="{{ work.title }}" style="width: 100%; height: 200px; object-fit: cover; transition: all 0.5s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="padding: 1.5rem;">
+          <h4 style="margin: 0; font-weight: 600;">{{ work.title }}</h4>
+          {% if work.link %}
+            <a href="{{ work.link }}" target="_blank" style="font-size: 0.85rem; color: var(--primary); text-decoration: none; display: block; margin-top: 0.5rem;">{% trans "View Project" %} ↗</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="section-subtext">{% trans "No previous work samples uploaded yet." %}</p>
     {% endfor %}
   </div>
 
-  <hr class="divider">
-
   <!-- Reviews Section -->
-  <h3 class="section-title {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">⭐ {% trans "Customer Reviews" %}</h3>
-  <p class="total-reviews {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">{% blocktrans %}Total Reviews: {{ total_reviews }}{% endblocktrans %}</p>
+  <div class="section-header-wrap reveal" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+    <h3 class="section-heading" style="font-size: 1.8rem;">⭐ {% trans "Client Experiences" %}</h3>
+    <p class="section-subtext" style="margin-top: 0;">{% trans "Read what others say about working with" %} {{ organizer.name }}</p>
+  </div>
 
-  {% if reviews %}
-    {% for review in reviews %}
-      <div class="review-box {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-        <p class="reviewer-name">{{ review.reviewer_name }}</p>
-        <p class="review-rating">{% blocktrans %}Rating: {{ review.rating }} / 5{% endblocktrans %}</p>
-        <p class="review-comment">{{ review.comment }}</p>
-        <p class="review-date">{{ review.created_at|date:"Y-m-d" }}</p>
+  <div class="reviews-stack reveal">
+    {% if reviews %}
+      {% for review in reviews %}
+        <div class="premium-form-card" style="padding: 2rem; margin-bottom: 1.5rem; border-radius: var(--radius-md);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h5 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ review.name }}</h5>
+              <span style="font-size: 0.8rem; color: var(--gray-400);">{{ review.created_at|date:"F d, Y" }}</span>
+            </div>
+            <div style="color: #f1c40f; font-size: 1.1rem;">
+              {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %}
+                  <i class="fas fa-star"></i>
+                {% else %}
+                  <i class="far fa-star"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <p style="margin: 0; line-height: 1.7; color: var(--gray-600);">"{{ review.comment }}"</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="premium-about-card center" style="padding: 4rem; text-align: center; border-style: dashed; border-width: 2px;">
+        <p class="section-subtext">{% trans "This organizer hasn't been reviewed yet. Be the first!" %}</p>
       </div>
-    {% endfor %}
-  {% else %}
-    <p class="no-reviews">{% trans "No reviews yet." %}</p>
-  {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- Direct Contact CTA -->
+  <div class="cta-wrap center reveal" style="text-align: center; margin-top: 6rem; padding: 4rem; background: var(--primary); border-radius: var(--radius-lg); color: white;">
+    <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">{% trans "Ready to start your event?" %}</h2>
+    <p style="opacity: 0.9; margin-bottom: 2.5rem; font-size: 1.1rem;">{% trans "Hire" %} {{ organizer.name }} {% trans "now to ensure a seamless and professional event experience." %}</p>
+    <a href="{% url 'contact_organizer' organizer.id %}" class="btn-primary" style="background: white; color: var(--primary); font-weight: 700; padding: 1.25rem 3rem; border-radius: 50px;">
+      <i class="fas fa-paper-plane" style="margin-right: 0.5rem;"></i> {% trans "Contact Organizer" %}
+    </a>
+  </div>
 
 </div>
 {% endblock %}
-
-
-
-
-  <!-- <div class="rating-summary">
-  <p class="rating-score">⭐ {{ average_rating }} / 5</p>
-  <p class="review-count">({{ total_reviews }} تقييم)</p>
-</div> -->
-
-
-
-
-
-
-  <!-- ⭐ Average Rating
-<div class="average-ratingm">
-  <h4>⭐ Average Rating: {{ average_rating }} / 5</h4>
-  <div class="star-displaym">
-    {% for i in "12345" %}
-      {% if forloop.counter <= average_rating|floatformat:0 %}
-        <span class="star filledm">★</span>
-      {% else %}
-        <span class="starm">☆</span>
-      {% endif %}
-    {% endfor %}
-  </div>
-</div> -->

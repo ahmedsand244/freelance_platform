@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "Add New Service" %} | Myths Solutions{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --accent-indigo: #6366f1;
+        --accent-indigo-glow: rgba(99, 102, 241, 0.3);
+    }
+
+    .add-service-wrapper {
+        min-height: 100vh;
+        background: radial-gradient(circle at top right, #0f172a, #020617);
+        padding: 6rem 1rem;
+    }
+
+    .premium-form-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 3rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 3.5rem;
+    }
+
+    .form-header h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .form-header p {
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .form-section-title {
+        color: #fff;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-section-title i {
+        color: var(--accent-indigo);
+    }
+
+    .premium-input-group {
+        margin-bottom: 2rem;
+    }
+
+    .premium-label {
+        display: block;
+        color: #e2e8f0;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .premium-input {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1.5px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        color: #fff !important;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .premium-input:focus {
+        border-color: var(--accent-indigo);
+        box-shadow: 0 0 0 4px var(--accent-indigo-glow);
+        outline: none;
+        background: rgba(15, 23, 42, 0.8) !important;
+    }
+
+    .premium-input::placeholder {
+        color: #475569;
+    }
+
+    .file-upload-wrapper {
+        border: 2px dashed var(--glass-border);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .file-upload-wrapper:hover {
+        border-color: var(--accent-indigo);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .file-icon {
+        font-size: 2.5rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
+    }
+
+    .submit-btn-wrap {
+        margin-top: 4rem;
+    }
+
+    .btn-sovereign-submit {
+        width: 100%;
+        background: linear-gradient(135deg, var(--accent-indigo), #4f46e5);
+        color: #fff;
+        border: none;
+        border-radius: 16px;
+        padding: 1.25rem;
+        font-size: 1.15rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-sovereign-submit:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-sovereign-submit i {
+        font-size: 1.4rem;
+    }
+
+    .note-box {
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 3rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .note-box i {
+        color: #fbbf24;
+        font-size: 1.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .note-box p {
+        color: #fbbf24;
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* RTL Adjustments */
+    [dir="rtl"] .form-section-title i {
+        margin-left: 0.75rem;
+        margin-right: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-service-wrapper">
+    <div class="container container-custom">
+        <div class="premium-form-card">
+            
+            <div class="form-header">
+                <h1>{% trans "Launch Your Service" %}</h1>
+                <p>{% trans "Share your legendary skills with the Myths community." %}</p>
+            </div>
+
+            <div class="note-box">
+                <i class="fas fa-shield-halved"></i>
+                <div>
+                    <p><strong>{% trans "Moderation Notice:" %}</strong> {% trans "All new services are reviewed by our elite team to ensure the highest quality standards. Your service will appear in the marketplace once approved (usually within 24 hours)." %}</p>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- General Info -->
+                <div class="form-section-title">
+                    <i class="fas fa-layer-group"></i>
+                    {% trans "General Information" %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 premium-input-group">
+                        <label class="premium-label">{% trans "Service Title" %}</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<small class="text-danger">{{ form.title.errors.0 }}</small>{% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 premium-input-group">
+                        <label class="premium-label">{% trans "Primary Category" %}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<small class="text-danger">{{ form.category.errors.0 }}</small>{% endif %}
+                    </div>
+                    <div class="col-md-6 premium-input-group">
+                        <label class="premium-label">{% trans "Subcategory" %}</label>
+                        {{ form.subcategory }}
+                        {% if form.subcategory.errors %}<small class="text-danger">{{ form.subcategory.errors.0 }}</small>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Pricing & Details -->
+                <div class="form-section-title" style="margin-top: 2rem;">
+                    <i class="fas fa-coins"></i>
+                    {% trans "Tiered Packages (Pricing & Delivery)" %}
+                </div>
+                
+                <div class="pricing-card" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                    <h4 style="color: white; margin-bottom: 1.5rem;"><span style="color: #94a3b8">{% trans "Tier 1:" %}</span> {% trans "Essential" %}</h4>
+                    <div class="row">
+                        <div class="col-md-6 premium-input-group">
+                            <label class="premium-label">{% trans "Starting Price (EGP)" %}</label>
+                            {{ form.price }}
+                        </div>
+                        <div class="col-md-6 premium-input-group">
+                            <label class="premium-label">{% trans "Delivery Time (Days)" %}</label>
+                            {{ form.delivery_days }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pricing-card" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h4 style="color: #fbbf24; margin: 0;"><span style="color: #94a3b8">{% trans "Tier 2:" %}</span> {% trans "Premium" %}</h4>
+                        <label style="color: white; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            {{ form.has_tier_2 }} <strong>{% trans "Enable Tier 2" %}</strong>
+                        </label>
+                    </div>
+                    <div id="tier2-fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Tier Name" %}</label>
+                                {{ form.tier_2_name }}
+                            </div>
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Price (EGP)" %}</label>
+                                {{ form.tier_2_price }}
+                            </div>
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Delivery (Days)" %}</label>
+                                {{ form.tier_2_delivery_days }}
+                            </div>
+                        </div>
+                        <div class="premium-input-group" style="margin-bottom: 0;">
+                            <label class="premium-label">{% trans "What's included?" %}</label>
+                            {{ form.tier_2_description }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pricing-card" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                        <h4 style="color: #c084fc; margin: 0;"><span style="color: #94a3b8">{% trans "Tier 3:" %}</span> {% trans "Imperial" %}</h4>
+                        <label style="color: white; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            {{ form.has_tier_3 }} <strong>{% trans "Enable Tier 3" %}</strong>
+                        </label>
+                    </div>
+                    <div id="tier3-fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Tier Name" %}</label>
+                                {{ form.tier_3_name }}
+                            </div>
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Price (EGP)" %}</label>
+                                {{ form.tier_3_price }}
+                            </div>
+                            <div class="col-md-4 premium-input-group">
+                                <label class="premium-label">{% trans "Delivery (Days)" %}</label>
+                                {{ form.tier_3_delivery_days }}
+                            </div>
+                        </div>
+                        <div class="premium-input-group" style="margin-bottom: 0;">
+                            <label class="premium-label">{% trans "What's included?" %}</label>
+                            {{ form.tier_3_description }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-section-title" style="margin-top: 2rem;">
+                    <i class="fas fa-align-left"></i>
+                    {% trans "Service Description" %}
+                </div>
+                <div class="premium-input-group" style="position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label class="premium-label" style="margin-bottom: 0;">{% trans "Tell us about what you offer" %}</label>
+                        <button type="button" id="ai-generate-btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 800; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                            <i class="fas fa-magic"></i> <span id="ai-btn-text">{% trans "Spark AI Magic ✨" %}</span>
+                        </button>
+                    </div>
+                    {{ form.description }}
+                </div>
+
+                <!-- Visuals -->
+                <div class="form-section-title" style="margin-top: 2rem;">
+                    <i class="fas fa-image"></i>
+                    {% trans "Visual Identity" %}
+                </div>
+                <div class="premium-input-group">
+                    <label class="premium-label">{% trans "Service Cover Image" %}</label>
+                    <div class="file-upload-wrapper" onclick="document.getElementById('{{ form.image.auto_id }}').click();">
+                        <i class="fas fa-cloud-arrow-up file-icon"></i>
+                        <h4 style="color:#fff">{% trans "Click or Drag & Drop" %}</h4>
+                        <p style="color:#94a3b8">{% trans "SVG, PNG, JPG or WEBP (Max 2MB)" %}</p>
+                        <div style="opacity:0; position:absolute; z-index:-1">
+                            {{ form.image }}
+                        </div>
+                    </div>
+                    {% if form.image.errors %}<small class="text-danger">{{ form.image.errors.0 }}</small>{% endif %}
+                </div>
+
+                <div class="submit-btn-wrap">
+                    <button type="submit" class="btn-sovereign-submit">
+                        <i class="fas fa-rocket"></i>
+                        {% trans "Submit for Review" %}
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Simple script to inject class and style into DJANGO forms widgets
+    document.querySelectorAll('.premium-form-card input, .premium-form-card select, .premium-form-card textarea').forEach(el => {
+        if(el.type !== 'file') {
+            el.classList.add('premium-input');
+        }
+    });
+
+    // Handle file input name display
+    const fileInput = document.querySelector('input[type="file"]');
+    if(fileInput) {
+        fileInput.addEventListener('change', function() {
+            if(this.files && this.files[0]) {
+                const wrapper = document.querySelector('.file-upload-wrapper');
+                wrapper.style.borderColor = 'var(--accent-indigo)';
+                wrapper.querySelector('h4').textContent = this.files[0].name;
+            }
+        });
+    }
+
+    // Toggle Tiers Logic
+    const toggleTier2 = document.getElementById('id_has_tier_2');
+    const toggleTier3 = document.getElementById('id_has_tier_3');
+    const boxTier2 = document.getElementById('tier2-fields');
+    const boxTier3 = document.getElementById('tier3-fields');
+
+    function updateTiers() {
+        if(toggleTier2) {
+            boxTier2.style.display = toggleTier2.checked ? 'block' : 'none';
+        }
+        if(toggleTier3) {
+            boxTier3.style.display = toggleTier3.checked ? 'block' : 'none';
+        }
+    }
+    
+    if(toggleTier2) toggleTier2.addEventListener('change', updateTiers);
+    if(toggleTier3) toggleTier3.addEventListener('change', updateTiers);
+    
+    updateTiers();
+</script>
+<script>
+    document.getElementById('ai-generate-btn').addEventListener('click', async function() {
+        const titleInput = document.getElementById('id_title');
+        const descInput = document.getElementById('id_description');
+        const btn = this;
+        const textSpan = document.getElementById('ai-btn-text');
+        
+        if(!titleInput || !titleInput.value.trim()) {
+            alert('{% trans "Please enter a Service Title first so the AI knows what to write." %}');
+            titleInput.focus();
+            return;
+        }
+
+        const originalText = textSpan.innerHTML;
+        textSpan.innerHTML = '{% trans "Generating..." %} <i class="fas fa-spinner fa-spin"></i>';
+        btn.style.opacity = '0.7';
+        btn.style.pointerEvents = 'none';
+
+        try {
+            const response = await fetch('{% url "generate_ai_description" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ title: titleInput.value.trim() })
+            });
+
+            const data = await response.json();
+            
+            if(response.ok && data.description) {
+                descInput.value = data.description;
+                // Highlight effect
+                descInput.style.transition = 'box-shadow 0.3s ease';
+                descInput.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.3)';
+                setTimeout(() => { descInput.style.boxShadow = ''; }, 2000);
+            } else {
+                alert(data.error || '{% trans "Failed to generate description" %}');
+            }
+        } catch (e) {
+            alert('{% trans "An unexpected error occurred." %}');
+            console.error(e);
+        } finally {
+            textSpan.innerHTML = originalText;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        }
+    });
+</script>
+{% endblock %}

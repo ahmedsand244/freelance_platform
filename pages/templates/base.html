@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 {% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
 <head>
   <meta charset="UTF-8">
-  <title>{% block title %}{% trans "Services Site" %}{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}Freelance Yard — Your trusted platform for booking premium freelance services and events in Egypt and beyond.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}freelance, services, events, organizers, Egypt, marketplace{% endblock %}">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}Freelance Yard{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Your trusted freelance marketplace.{% endblock %}">
 
+  <title>{% block title %}Myths Solutions — Premier Freelance Marketplace{% endblock %}</title>
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- Dark mode init — must be before CSS load to prevent flash -->
   <script>
     (function() {
       try {
@@ -18,152 +33,635 @@
   </script>
 
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/premium.css' %}">
+  {% if LANGUAGE_CODE == 'ar' %}
+    <link rel="stylesheet" href="{% static 'css/rtl.css' %}">
+  {% endif %}
+  {% block extra_css %}{% endblock %}
+  
+  <!-- Growth Analytics & Event Tracking (Global) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRACKING-ID"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TRACKING-ID', {
+      'user_id': "{{ request.user.id|default:'' }}" || null,
+      'page_path': window.location.pathname
+    });
+  </script>
 </head>
 
 <body class="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
 
-
-<nav class="navbar ">
+<!-- ═══════════════════════════════════════
+     NAVBAR  —  Sticky, Premium
+═══════════════════════════════════════ -->
+<nav class="navbar" id="mainNavbar">
   <div class="nav-top">
+    <!-- Logo -->
     <div class="nav-left">
-      <div class="logo">
-        <img class="logo_dark" src="{% static 'images/Myths Solutions.png' %}" alt="logo_dark">
-      </div>
+      <a href="{% url 'home' %}" class="nav-logo-link">
+        <img class="logo_dark" src="{% static 'images/myths_logo.png' %}" alt="Myths Solutions Logo">
+      </a>
     </div>
+
+    <!-- Search bar (desktop) -->
+    <div class="nav-search">
+      <form method="get" action="{% url 'search_services' %}" class="nav-search-form" autocomplete="off">
+        <div class="nav-search-wrapper">
+          <i class="fas fa-search nav-search-icon"></i>
+          <input type="text" name="q" id="navSearchInput"
+                 placeholder="{% trans 'Search services...' %}"
+                 class="nav-search-input"
+                 value="{{ request.GET.q }}">
+          <!-- Autocomplete dropdown -->
+          <div class="search-autocomplete" id="searchAutocomplete"></div>
+        </div>
+        <button type="submit" class="nav-search-btn">{% trans "Search" %}</button>
+      </form>
+    </div>
+
+    <!-- Nav Right actions -->
     <div class="nav-right">
-      <button class="dark-toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i></button>
+      <!-- Dark mode toggle -->
+      <button class="dark-toggle" onclick="toggleDarkMode()" title="{% trans 'Toggle Theme' %}" id="themeToggleBtn">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
 
+      <!-- Language selector -->
+      <form action="{% url 'set_language' %}" method="post" class="lang-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <select name="language" onchange="this.form.submit()" class="language-select">
+          <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>🇬🇧 EN</option>
+          <option value="ar" {% if LANGUAGE_CODE == 'ar' %}selected{% endif %}>🇪🇬 AR</option>
+        </select>
+      </form>
 
-
-<form action="{% url 'set_language' %}" method="post">
-  {% csrf_token %}
-  {% get_current_language as LANGUAGE_CODE %}
-  <select name="language" onchange="this.form.submit()" class="language-select">
-    <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>English</option>
-    <option value="ar" {% if LANGUAGE_CODE == 'ar' %}selected{% endif %}>العربية</option>
-  </select>
-</form>
-
-
+        <!-- Add Service (Visible Action) -->
+        <a href="{% url 'add_service' %}" class="nav-action-btn-premium" title="{% trans 'Add Service' %}">
+          <i class="fas fa-plus-circle"></i>
+          <span class="btn-text-desktop">{% trans "Add Service" %}</span>
+        </a>
 
       {% if user.is_authenticated %}
-        <a href="{% url 'my_account' %}" class="account-btn"><i class="fa fa-user"></i> {% trans "My Account" %}</a>
-        <a href="{% url 'logout' %}" class="logout-btn">{% trans "Logout" %}</a>
+        <!-- Cart -->
+        <a href="{% url 'checkout' %}" class="nav-icon-btn" title="{% trans 'Cart' %}">
+          <i class="fas fa-shopping-cart"></i>
+        </a>
+        <!-- Wishlist -->
+        <a href="{% url 'wishlist' %}" class="nav-icon-btn" title="{% trans 'Wishlist' %}">
+          <i class="fas fa-heart"></i>
+        </a>
+        <!-- Notifications -->
+        <a href="{% url 'notifications' %}" class="nav-icon-btn notif-btn {% if unread_notifications_count > 0 %}has-notifications{% endif %}" title="{% trans 'Notifications' %}">
+          <i class="fas fa-bell"></i>
+          <span class="notif-badge" id="notifBadge" {% if unread_notifications_count == 0 %}style="display:none"{% endif %}>{{ unread_notifications_count }}</span>
+        </a>
+        <!-- Account dropdown -->
+        <div class="nav-account-dropdown">
+          <button class="account-avatar-btn" onclick="toggleAccountMenu()">
+            {% if user.profile_image %}
+              <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="nav-avatar">
+            {% else %}
+              <div class="nav-avatar-placeholder">{{ user.username|first|upper }}</div>
+            {% endif %}
+            <span class="nav-username">{{ user.username }}</span>
+            <i class="fas fa-chevron-down nav-chevron"></i>
+          </button>
+          <div class="account-dropdown-menu" id="accountDropdownMenu">
+            {% if user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}" style="background: #fffbeb; color: #92400e; font-weight: bold;"><i class="fas fa-tools"></i> {% trans "Admin Panel" %}</a>
+            <div class="dropdown-divider"></div>
+            {% endif %}
+            <a href="{% url 'my_account' %}"><i class="fas fa-tachometer-alt"></i> {% trans "Dashboard" %}</a>
+            <a href="{% url 'wallet' %}"><i class="fas fa-wallet"></i> {% trans "My Wallet" %}</a>
+            <a href="{% url 'wishlist' %}"><i class="fas fa-heart"></i> {% trans "Wishlist" %}</a>
+            <a href="{% url 'notifications' %}"><i class="fas fa-bell"></i> {% trans "Notifications" %}</a>
+            <a href="{% url 'update_account' %}"><i class="fas fa-cog"></i> {% trans "Settings" %}</a>
+            <div class="dropdown-divider"></div>
+            <a href="{% url 'logout' %}" class="dropdown-logout"><i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}</a>
+          </div>
+        </div>
       {% else %}
-        <a href="{% url 'login' %}" class="login-btn">{% trans "Login" %}</a>
-        <a href="{% url 'register' %}" class="register-btn">{% trans "Register" %}</a>
+        <a href="{% url 'login' %}" class="btn-login">{% trans "Login" %}</a>
+        <a href="{% url 'register' %}" class="btn-register">{% trans "Get Started" %}</a>
       {% endif %}
+
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" onclick="toggleMenu()" id="hamburgerBtn" aria-label="Toggle menu">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      </button>
     </div>
   </div>
 
+  <!-- Nav Bottom — Links -->
   <div class="nav-bottom {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <div class="hamburger" onclick="toggleMenu()">☰</div>
     <ul class="nav-links" id="navLinks">
-      <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">{% trans "Home" %}</a></li>
-      <li><a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">{% trans "About Us" %}</a></li>
-      <li><a href="{% url 'services_list' %}" class="{% if request.resolver_match.url_name == 'services_list' %}active{% endif %}">{% trans "Services" %}</a></li>
-      <li><a href="{% url 'events' %}" class="{% if request.resolver_match.url_name == 'events' %}active{% endif %}">{% trans "Events" %}</a></li>
-      <li><a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">{% trans "Contact" %}</a></li>
-      <li><a href="{% url 'cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">{% trans "Cart" %}</a></li>
-      <li><a href="{% url 'all_organizers' %}" class="{% if request.resolver_match.url_name == 'all_organizers' %}active{% endif %}">{% trans "Organizers" %}</a></li>
+      <li><a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <i class="fas fa-home"></i> {% trans "Home" %}</a></li>
+      <li><a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+        <i class="fas fa-info-circle"></i> {% trans "About" %}</a></li>
+      <li><a href="{% url 'services_list' %}" class="{% if request.resolver_match.url_name == 'services_list' %}active{% endif %}">
+        <i class="fas fa-briefcase"></i> {% trans "Services" %}</a></li>
+      <li><a href="{% url 'events' %}" class="{% if request.resolver_match.url_name == 'events' %}active{% endif %}">
+        <i class="fas fa-calendar-alt"></i> {% trans "Events" %}</a></li>
+      <li><a href="{% url 'all_organizers' %}" class="{% if request.resolver_match.url_name == 'all_organizers' %}active{% endif %}">
+        <i class="fas fa-users"></i> {% trans "Organizers" %}</a></li>
+      <li><a href="{% url 'buyer_requests_list' %}" class="{% if request.resolver_match.url_name == 'buyer_requests_list' %}active{% endif %}">
+        <i class="fas fa-gavel"></i> {% trans "Agora / Hub" %}</a></li>
+      <li><a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+        <i class="fas fa-envelope"></i> {% trans "Contact" %}</a></li>
       {% if user.is_staff %}
-        <li><a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">{% trans "Dashboard" %}</a></li>
+        <li><a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active nav-admin-link{% endif %} nav-admin-link">
+          <i class="fas fa-shield-alt"></i> {% trans "Admin" %}</a></li>
       {% endif %}
+      <!-- Mobile only auth links -->
       {% if user.is_authenticated %}
-        <a href="{% url 'my_account' %}" class="account_me">{% trans "My Account" %}</a>
-        <a href="{% url 'logout' %}" class="logout_me">{% trans "Logout" %}</a>
+        <li class="mobile-only"><a href="{% url 'my_account' %}"><i class="fas fa-user"></i> {% trans "My Account" %}</a></li>
+        <li class="mobile-only"><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> {% trans "Logout" %}</a></li>
       {% else %}
-        <a href="{% url 'login' %}" class="login_me">{% trans "Login" %}</a>
-        <a href="{% url 'register' %}" class="register_me">{% trans "Register" %}</a>
+        <li class="mobile-only"><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> {% trans "Login" %}</a></li>
+        <li class="mobile-only"><a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> {% trans "Register" %}</a></li>
       {% endif %}
     </ul>
   </div>
 </nav>
 
-<main class="main-content ">
+<!-- Toast notification container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Django messages as toasts -->
+{% if messages %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    {% for message in messages %}
+      showToast("{{ message|escapejs }}", "{{ message.tags }}");
+    {% endfor %}
+  });
+</script>
+{% endif %}
+
+<!-- Main content -->
+<main class="main-content">
   {% block content %}{% endblock %}
 </main>
 
-<footer class="site-footer {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  <div class="footer-top">
-    <div class="footer-container">
+<!-- ═══════════════════════════════════════
+     FOOTER: ENGINEERED BY AHMED TORKI
+═══════════════════════════════════════ -->
+<footer class="site-footer {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}" style="background: #0f172a; border-top: 1.5px solid var(--border-color); padding-top: 6rem; position: relative; overflow: hidden;">
+  
+  <!-- Subtle Gradient Glow -->
+  <div style="position: absolute; top: -150px; left: 50%; transform: translateX(-50%); width: 600px; height: 300px; background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%); pointer-events: none;"></div>
+
+  <div class="footer-top" style="position: relative; z-index: 2;">
+    <div class="footer-container" style="max-width: 1300px; margin: 0 auto; padding: 0 2.5rem; display: grid; grid-template-columns: 1.50fr 1fr 1fr 1fr; gap: 4rem;">
+      
+    <!-- Brand Column -->
       <div class="footer-column brand">
-        <div class="footer-logo">
-          <img src="{% static 'images/Myths Solutions.png' %}" alt="Site Logo">
+        <div class="footer-logo" style="margin-bottom: 2.5rem;">
+          <img src="{% static 'images/myths_logo.png' %}" alt="Myths Solutions" style="height: 65px; filter: brightness(1.2);">
         </div>
-        <p class="footer-description">{% trans "Your trusted platform for booking events and services seamlessly." %}</p>
+        <p class="footer-description" style="color: #94a3b8; line-height: 1.8; font-size: 1rem; margin-bottom: 2.5rem; font-weight: 500;">
+          {% trans "Engineering the next generation of premium freelance experiences. Where quality meets absolute reliability." %}
+        </p>
+        <div class="footer-stats" style="display: flex; gap: 2rem;">
+          <div class="footer-stat"><strong style="color: var(--primary); font-size: 1.3rem; font-weight: 900;">500+</strong><span style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; display: block;">{% trans "Services" %}</span></div>
+          <div class="footer-stat"><strong style="color: var(--primary); font-size: 1.3rem; font-weight: 900;">1K+</strong><span style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; display: block;">{% trans "Clients" %}</span></div>
+          <div class="footer-stat"><strong style="color: var(--primary); font-size: 1.3rem; font-weight: 900;">98%</strong><span style="color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; display: block;">{% trans "Result" %}</span></div>
+        </div>
       </div>
 
+      <!-- Links Column -->
       <div class="footer-column links">
-        <h3>{% trans "Quick Links" %}</h3>
-        <ul>
-          <li><a href="{% url 'home' %}">{% trans "Home" %}</a></li>
-          {% if user.is_staff %}
-            <li><a href="{% url 'admin_dashboard' %}">{% trans "Dashboard" %}</a></li>
-          {% endif %}
-          <li><a href="{% url 'about' %}">{% trans "About Us" %}</a></li>
-          <li><a href="{% url 'services_list' %}">{% trans "Services" %}</a></li>
-          <li><a href="{% url 'events' %}">{% trans "Events" %}</a></li>
-          <li><a href="{% url 'contact' %}">{% trans "Contact" %}</a></li>
-          <li><a href="{% url 'cart' %}">{% trans "Cart" %}</a></li>
-          <li><a href="{% url 'all_organizers' %}">{% trans "Organizers" %}</a></li>
-          <li><a href="{% url 'my_account' %}">{% trans "My Account" %}</a></li>
-          {% if user.is_authenticated %}
-            <li><a href="{% url 'logout' %}">{% trans "Logout" %}</a></li>
-          {% else %}
-            <li><a href="{% url 'login' %}">{% trans "Login" %}</a></li>
-            <li><a href="{% url 'register' %}">{% trans "Register" %}</a></li>
-          {% endif %}
+        <h3 style="color: #f8fafc; font-size: 1.2rem; font-weight: 900; margin-bottom: 2.5rem; letter-spacing: -0.5px;">{% trans "Navigation" %}</h3>
+        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1.2rem;">
+          <li><a href="{% url 'home' %}" style="color: #94a3b8; text-decoration: none; font-weight: 700; transition: color 0.3s ease;">{% trans "Home Center" %}</a></li>
+          <li><a href="{% url 'about' %}" style="color: #94a3b8; text-decoration: none; font-weight: 700; transition: color 0.3s ease;">{% trans "Our Origin" %}</a></li>
+          <li><a href="{% url 'services_list' %}" style="color: #94a3b8; text-decoration: none; font-weight: 700; transition: color 0.3s ease;">{% trans "Marketplace" %}</a></li>
+          <li><a href="{% url 'events' %}" style="color: #94a3b8; text-decoration: none; font-weight: 700; transition: color 0.3s ease;">{% trans "Major Events" %}</a></li>
+          <li><a href="{% url 'contact' %}" style="color: #94a3b8; text-decoration: none; font-weight: 700; transition: color 0.3s ease;">{% trans "Direct Support" %}</a></li>
         </ul>
       </div>
 
+      <!-- Social & Newsletter -->
       <div class="footer-column social">
-        <h3>{% trans "Connect With Us" %}</h3>
-        <div class="social-icons">
-          <a href="https://www.facebook.com/profile.php?id=61577359341269" target="_blank" class="fb"><i class="fab fa-facebook-f"></i></a>
-          <a href="https://twitter.com" target="_blank" class="tw"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="https://www.instagram.com/myths_solutions/" target="_blank" class="ig"><i class="fab fa-instagram"></i></a>
-          <a href="https://www.linkedin.com/company/myths-solutions/" target="_blank" class="li"><i class="fab fa-linkedin-in"></i></a>
-          <a href="https://youtube.com" target="_blank" class="yt"><i class="fab fa-youtube"></i></a>
-          <a href="https://wa.me/201234567890" target="_blank" class="wa"><i class="fab fa-whatsapp"></i></a>
+        <h3 style="color: #f8fafc; font-size: 1.2rem; font-weight: 900; margin-bottom: 2.5rem; letter-spacing: -0.5px;">{% trans "Global Connection" %}</h3>
+        <div class="social-icons" style="display: flex; gap: 1.2rem; margin-bottom: 3rem;">
+          <a href="https://www.facebook.com/profile.php?id=61577359341269" target="_blank" style="width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; transition: all 0.3s ease;"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank" style="width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; transition: all 0.3s ease;"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="https://www.instagram.com/myths_solutions/" target="_blank" style="width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; transition: all 0.3s ease;"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.linkedin.com/company/myths-solutions/" target="_blank" style="width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.2rem; transition: all 0.3s ease;"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+        <div class="footer-newsletter">
+          <p style="color: #f8fafc; font-weight: 800; font-size: 0.9rem; margin-bottom: 1.2rem;">{% trans "The Intelligence Report" %}</p>
+          <div class="newsletter-form" style="display: flex; gap: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 15px; border: 1.5px solid rgba(255,255,255,0.05);">
+            <input type="email" placeholder="{% trans 'Your email...' %}" style="background: transparent; border: none; color: white; padding-left: 1rem; width: 100%; outline: none; font-weight: 600;">
+            <button style="background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 12px; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+          </div>
         </div>
       </div>
 
+      <!-- Contact Info -->
       <div class="footer-column contact">
-        <h3>{% trans "Contact Us" %}</h3>
-        <ul>
-          <li><i class="fas fa-map-marker-alt"></i> {% trans "123 Main Street, Cairo, Egypt" %}</li>
-          <li><i class="fas fa-phone"></i> +20 123 456 7890</li>
-          <li><i class="fas fa-envelope"></i> myths.solutions@gmail.com</li>
-          <li><i class="fas fa-clock"></i> {% trans "Mon - Fri: 9:00 - 18:00" %}</li>
+        <h3 style="color: #f8fafc; font-size: 1.2rem; font-weight: 900; margin-bottom: 2.5rem; letter-spacing: -0.5px;">{% trans "Headquarters" %}</h3>
+        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1.5rem; color: #94a3b8; font-weight: 700; font-size: 0.95rem;">
+          <li><i class="fas fa-map-marker-alt" style="color: var(--primary); margin-right: 1rem;"></i> {% trans "Cairo, Egypt" %}</li>
+          <li><i class="fas fa-phone" style="color: var(--primary); margin-right: 1rem;"></i> +20 123 456 7890</li>
+          <li><i class="fas fa-envelope" style="color: var(--primary); margin-right: 1rem;"></i> myths.solutions@gmail.com</li>
         </ul>
+        <div class="payment-badges" style="margin-top: 2.5rem; display: flex; gap: 1.5rem; opacity: 0.6;">
+            <i class="fas fa-shield-check" style="font-size: 1.5rem;"></i>
+            <i class="fab fa-cc-visa" style="font-size: 1.5rem;"></i>
+            <i class="fab fa-cc-mastercard" style="font-size: 1.5rem;"></i>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Bar: Credit Ahmed Torky -->
+  <div class="footer-bottom" style="margin-top: 6rem; padding: 3rem 0; border-top: 1.5px solid rgba(255,255,255,0.05); text-align: center; position: relative; z-index: 2; background: rgba(0,0,0,0.2);">
+    <div class="footer-container" style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 2.5rem;">
+      <p style="color: #64748b; font-weight: 700; font-size: 0.9rem;">
+        © 2025 Myths Solutions. {% trans "All Rights Reserved." %}
+      </p>
+      
+      <!-- Signature: Ahmed Torky -->
+      <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <span style="color: #64748b; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">{% trans "Built with Passion by" %}</span>
+        <span style="color: #ffffff; background: linear-gradient(135deg, var(--primary), #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 950; font-size: 1.1rem; letter-spacing: -0.5px; position: relative;">
+          Ahmed Torki
+          <div style="position: absolute; bottom: -4px; left: 0; width: 100%; height: 2px; background: var(--primary); opacity: 0.3; border-radius: 10px;"></div>
+        </span>
+      </div>
+
+      <div class="footer-bottom-links" style="display: flex; gap: 2rem;">
+        <a href="{% url 'game' %}" style="color: var(--primary); text-decoration: none; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;"><i class="fas fa-gamepad"></i> {% trans "Sovereign Arcade" %} 🎮</a>
+        <a href="{% url 'pulse' %}" style="color: #ec4899; text-decoration: none; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;"><i class="fas fa-chart-line"></i> {% trans "Market Pulse" %} 📈</a>
+        <a href="{% url 'legends' %}" style="color: #ffd700; text-decoration: none; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;"><i class="fas fa-crown"></i> {% trans "Wall of Legends" %} 🏛️</a>
+        <a href="{% url 'privacy' %}" style="color: #64748b; text-decoration: none; font-weight: 800; font-size: 0.85rem;">{% trans "Privacy" %}</a>
+        <a href="{% url 'terms' %}" style="color: #64748b; text-decoration: none; font-weight: 800; font-size: 0.85rem;">{% trans "Terms" %}</a>
+        <a href="{% url 'refund' %}" style="color: #64748b; text-decoration: none; font-weight: 800; font-size: 0.85rem;">{% trans "Refund" %}</a>
       </div>
     </div>
   </div>
 
-  <div class="footer-bottom">
-    <p>© 2025 - {% trans "Services site by Ahmed Torky. All rights reserved." %}</p>
-  </div>
 </footer>
 
-<script>
-  function toggleMenu() {
-    document.getElementById("navLinks").classList.toggle("show");
-  }
+<!-- AI Chatbot -->
+{% include 'services/components/chat.html' %}
 
-  function toggleDarkMode() {
-    const html = document.documentElement;
-    if (html.classList.contains("dark-mode")) {
-      html.classList.remove("dark-mode");
-      html.classList.add("light-mode");
-      localStorage.setItem("mode", "light");
-    } else {
-      html.classList.remove("light-mode");
-      html.classList.add("dark-mode");
-      localStorage.setItem("mode", "dark");
-    }
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════ -->
+<script>
+// ── Theme Toggle ──
+function toggleDarkMode() {
+  const html = document.documentElement;
+  const icon = document.getElementById('themeIcon');
+  if (html.classList.contains('dark-mode')) {
+    html.classList.replace('dark-mode', 'light-mode');
+    localStorage.setItem('mode', 'light');
+    if (icon) { icon.className = 'fa-solid fa-moon'; }
+  } else {
+    html.classList.replace('light-mode', 'dark-mode');
+    localStorage.setItem('mode', 'dark');
+    if (icon) { icon.className = 'fa-solid fa-sun'; }
   }
+}
+
+// Update icon on load
+document.addEventListener('DOMContentLoaded', function() {
+  const icon = document.getElementById('themeIcon');
+  const mode = localStorage.getItem('mode') || 'light';
+  if (icon) { icon.className = mode === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
+});
+
+// ── Mobile Menu ──
+function toggleMenu() {
+  const navLinks = document.getElementById('navLinks');
+  const btn = document.getElementById('hamburgerBtn');
+  navLinks.classList.toggle('show');
+  btn.classList.toggle('active');
+}
+
+// ── Account Dropdown ──
+function toggleAccountMenu() {
+  document.getElementById('accountDropdownMenu').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  const dropdown = document.getElementById('accountDropdownMenu');
+  if (dropdown && !e.target.closest('.nav-account-dropdown')) {
+    dropdown.classList.remove('show');
+  }
+});
+
+// ── Sticky Navbar ──
+window.addEventListener('scroll', function() {
+  const navbar = document.getElementById('mainNavbar');
+  if (navbar) {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  }
+});
+
+// ── Toast Notifications ──
+function showToast(message, type) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  const typeClass = type.includes('error') ? 'toast-error' : type.includes('warning') ? 'toast-warning' : type.includes('success') ? 'toast-success' : 'toast-info';
+  toast.className = `toast ${typeClass}`;
+  const icon = type.includes('error') ? '✗' : type.includes('success') ? '✓' : 'ℹ';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${message}</span><button class="toast-close" onclick="this.parentElement.remove()">×</button>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.add('toast-show'); }, 10);
+  setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 4000);
+}
+
+// ── Real-Time Notifications (WebSockets) ──
+{% if user.is_authenticated %}
+  const notifSocket = new WebSocket(
+      (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/notifications/'
+  );
+
+  notifSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      if (data.type === 'notification') {
+          // Show toast
+          showToast(data.message, 'info');
+
+          // Update badge
+          const badge = document.getElementById('notifBadge');
+          if (badge) {
+              badge.textContent = data.count;
+              badge.style.display = data.count > 0 ? 'flex' : 'none';
+              
+              const btn = badge.closest('.notif-btn');
+              if (btn) {
+                  if (data.count > 0) {
+                      btn.classList.add('has-notifications');
+                  } else {
+                      btn.classList.remove('has-notifications');
+                  }
+              }
+          }
+      }
+  };
+
+  notifSocket.onclose = function(e) {
+      console.error('Notification socket closed unexpectedly');
+  };
+{% endif %}
+
+// ── Search Autocomplete ──
+const searchInput = document.getElementById('navSearchInput');
+const autocompleteBox = document.getElementById('searchAutocomplete');
+if (searchInput && autocompleteBox) {
+  let autocompleteTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(autocompleteTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { autocompleteBox.innerHTML = ''; autocompleteBox.classList.remove('show'); return; }
+    autocompleteTimer = setTimeout(() => {
+      fetch(`{% url 'search_autocomplete' %}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          autocompleteBox.innerHTML = data.results.map(r => {
+            const detailUrl = `/en/services/service/${r.id}/`;
+            return `<a href="${detailUrl}" class="autocomplete-item">
+              <i class="fas fa-briefcase"></i> ${r.title}
+            </a>`;
+          }).join('');
+          autocompleteBox.classList.add('show');
+        }).catch(() => {});
+    }, 300);
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.nav-search-wrapper')) {
+      autocompleteBox.classList.remove('show');
+    }
+  });
+}
+
+// ── Scroll Reveal ──
+// ── Scroll Reveal ──
+document.addEventListener('DOMContentLoaded', function() {
+  const items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    items.forEach(el => observer.observe(el));
+  } else {
+    items.forEach(el => el.classList.add('revealed'));
+  }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+
+<!-- 🧭 SOVEREIGN GUIDE LAUNCHER (FLOATING) -->
+<div id="guide-launcher" onclick="startSovereignGuide()" style="position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px; background: var(--primary); border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; cursor: pointer; z-index: 9990; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4); transition: transform 0.4s; border: 2.5px solid rgba(255,255,255,0.2);">
+    <i class="fas fa-compass"></i>
+    <div style="position: absolute; inset: -5px; border: 2px solid var(--primary); border-radius: 25px; animation: guidePulse 2s infinite; pointer-events: none;"></div>
+</div>
+
+<style>
+@keyframes guidePulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes haloPulse { 0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.8); } 100% { box-shadow: 0 0 0 30px rgba(79, 70, 229, 0); } }
+.guide-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; transition: 0.4s; }
+.guide-dot.active { background: var(--primary); width: 24px; border-radius: 10px; }
+#guide-launcher:hover { transform: scale(1.1) rotate(5deg); }
+.halo-active { position: relative !important; z-index: 9999 !important; animation: haloPulse 2s infinite !important; pointer-events: auto !important; }
+#sovereign-guide-bubble { max-width: 90vw; width: 380px; box-sizing: border-box; overflow: visible; }
+
+/* ✨ THE ROYAL SHIMMER */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.shimmer-effect { background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); background-size: 200% 100%; animation: shimmer 3s infinite; }
+
+/* 🏹 IMPERIAL ARROW */
+#guide-arrow { position: absolute; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; transition: all 0.4s; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
+#guide-arrow.down { border-top: 15px solid var(--primary); bottom: -15px; left: 50%; transform: translateX(-50%); }
+#guide-arrow.up { border-bottom: 15px solid var(--primary); top: -15px; left: 50%; transform: translateX(-50%); }
+
+html.dark-mode #sovereign-guide-bubble { background: rgba(15, 23, 42, 0.96) !important; border-color: rgba(255,255,255,0.12) !important; }
+html.dark-mode #guide-title { color: white !important; }
+html.dark-mode #guide-text { color: #94a3b8 !important; }
+html.dark-mode .guide-dot { background: rgba(255,255,255,0.1); }
+</style>
+
+<!-- 🏛️ THE IMPERIAL GUIDED TOUR UI -->
+<div id="sovereign-guide-overlay" onclick="endGuide()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 9998; display: none; cursor: pointer;"></div>
+<div id="sovereign-guide-bubble" style="position: fixed; z-index: 9999; display: none; transform: scale(0.5); opacity: 0; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center; pointer-events: auto; background: rgba(255,255,255,0.92); backdrop-filter: blur(40px); border-radius: 45px; border: 3px solid var(--primary); padding: 3.5rem;">
+    
+    <div id="guide-arrow"></div>
+    <div class="shimmer-effect" style="position: absolute; inset: 0; border-radius: 45px; pointer-events: none; opacity: 0.3;"></div>
+
+    <div style="position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; border-radius: 28px; background: linear-gradient(135deg, var(--primary), #ec4899); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4); border: 3px solid rgba(255,255,255,0.2);">
+        <i id="guide-icon" class="fas fa-crown"></i>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+        <h4 id="guide-title" style="font-size: 2rem; font-weight: 1000; color: #0f172a; margin-bottom: 0.8rem; letter-spacing: -1.5px;"></h4>
+        <p id="guide-text" style="font-size: 1.1rem; color: #475569; font-weight: 700; line-height: 1.8; margin-bottom: 2.5rem;"></p>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 2px solid rgba(0,0,0,0.05);">
+        <button onclick="endGuide()" style="background: none; border: none; color: #94a3b8; font-weight: 1000; font-size: 0.9rem; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;">{% trans "Dismiss" %}</button>
+        <div id="guide-dots-container" style="display: flex; gap: 10px;"></div>
+        <button id="guide-next-btn" onclick="nextGuideStep(event)" style="background: var(--primary); color: white; border: none; padding: 15px 35px; border-radius: 22px; font-weight: 1000; cursor: pointer; box-shadow: 0 15px 30px rgba(79, 70, 229, 0.4); transition: 0.4s; display: flex; align-items: center; gap: 12px; font-size: 1rem;">
+            <span id="btn-text">{% trans "Next" %}</span> <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+// --- 🏛️ THE EPIC OF LEGENDS ENGINE ---
+let guideStep = 0;
+let guideTimer = null;
+const guideSteps = [
+    { target: 'nav', icon: 'fa-globe-americas', title: '{% trans "Global Sphere" %}', content: '{% trans "You are now entering the Myths Gateway. Navigate your professional empire with precision." %}' },
+    { target: '.nav-search-wrapper', icon: 'fa-search', title: '{% trans "Oracle Search" %}', content: '{% trans "Find any elite service instantly with our high-speed, predictive search engine." %}' },
+    { target: '#themeToggle', icon: 'fa-moon', title: '{% trans "Atmosphere Shift" %}', content: '{% trans "Toggle between Luxury Dark and Imperial Light modes to suit your professional mood." %}' },
+    { target: '.header-actions-wrap', icon: 'fa-user-astronaut', title: '{% trans "The Architect" %}', content: '{% trans "Manage your portfolio, workspace, and earnings from this centralized control deck." %}' },
+    { target: '#bot-launcher-btn', icon: 'fa-robot', title: '{% trans "Digital Companion" %}', content: "{% blocktrans %}Ahmed Torki's AI assistant is standing by to guide your every move.{% endblocktrans %}" },
+    { target: 'footer', icon: 'fa-chart-network', title: '{% trans "Infinite Engine" %}', content: '{% trans "Explore our Myths Arcade entertainment, Market Pulse analytics, and the Wall of Legends." %}' }
+];
+
+function startSovereignGuide() {
+    clearTimeout(guideTimer);
+    guideStep = 0;
+    
+    // Build Dots
+    const dotsContainer = document.getElementById('guide-dots-container');
+    dotsContainer.innerHTML = guideSteps.map((_, i) => `<div id="guide-dot-${i}" class="guide-dot"></div>`).join('');
+
+    try {
+        const overlay = document.getElementById('sovereign-guide-overlay');
+        const bubble = document.getElementById('sovereign-guide-bubble');
+        if(overlay) overlay.style.display = 'block';
+        if(bubble) {
+            bubble.style.display = 'block';
+            bubble.style.top = '50%';
+            bubble.style.left = '50%';
+            bubble.style.transform = 'translate(-50%, -50%) scale(0.5)';
+            bubble.style.opacity = '0';
+            setTimeout(() => { bubble.style.transform = 'translate(-50%, -50%) scale(1)'; bubble.style.opacity = '1'; }, 50);
+        }
+        renderGuideStep();
+    } catch(e) { endGuide(); }
+}
+
+function renderGuideStep() {
+    clearTimeout(guideTimer);
+    try {
+        const step = guideSteps[guideStep];
+        const bubble = document.getElementById('sovereign-guide-bubble');
+        const arrow = document.getElementById('guide-arrow');
+        const targetEl = document.querySelector(step.target);
+        const icon = document.getElementById('guide-icon');
+
+        document.querySelectorAll('.halo-active').forEach(el => el.classList.remove('halo-active'));
+        
+        document.getElementById('guide-title').innerText = step.title;
+        document.getElementById('guide-text').innerText = step.content;
+        if(icon) {
+            icon.style.transform = 'scale(0.5)';
+            setTimeout(() => { icon.className = 'fas ' + step.icon; icon.style.transform = 'scale(1)'; }, 200);
+        }
+        
+        document.querySelectorAll('.guide-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === guideStep);
+        });
+        
+        document.getElementById('btn-text').innerText = (guideStep === guideSteps.length - 1) ? '{% trans "Ascend" %}' : '{% trans "Next" %}';
+
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            guideTimer = setTimeout(() => {
+                const rect = targetEl.getBoundingClientRect();
+                const bRect = bubble.getBoundingClientRect();
+                
+                let isAbove = false;
+                let top = rect.bottom + 35;
+                let left = rect.left + (rect.width/2) - (bRect.width/2);
+
+                if (rect.top > window.innerHeight / 2) {
+                    top = rect.top - bRect.height - 35;
+                    isAbove = true;
+                }
+
+                if (left < 20) left = 20;
+                if (left + bRect.width > window.innerWidth - 20) left = window.innerWidth - bRect.width - 20;
+                if (top < 20) top = 20;
+                if (top + bRect.height > window.innerHeight - 20) top = window.innerHeight - bRect.height - 20;
+
+                bubble.style.top = top + 'px';
+                bubble.style.left = left + 'px';
+                bubble.style.transform = 'translate(0, 0) scale(1)';
+                
+                // Position Arrow
+                arrow.className = isAbove ? 'up' : 'down';
+                arrow.style.left = (rect.left + rect.width/2 - left) + 'px';
+
+                targetEl.classList.add('halo-active');
+            }, 850);
+        } else {
+            // Safe Case: Center if missing
+            bubble.style.top = '50%';
+            bubble.style.left = '50%';
+            bubble.style.transform = 'translate(-50%, -50%) scale(1)';
+            arrow.style.display = 'none';
+        }
+    } catch(e) { console.error(e); }
+}
+
+function nextGuideStep(event) {
+    if(event) { event.stopPropagation(); }
+    guideStep++;
+    if (guideStep >= guideSteps.length) {
+        // Legendary Finale
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#4f46e5', '#ec4899', '#ffffff'] });
+        setTimeout(endGuide, 2000);
+    }
+    else renderGuideStep();
+}
+
+function endGuide() {
+    clearTimeout(guideTimer);
+    document.querySelectorAll('.halo-active').forEach(el => el.classList.remove('halo-active'));
+    const bubble = document.getElementById('sovereign-guide-bubble');
+    const overlay = document.getElementById('sovereign-guide-overlay');
+    
+    if(bubble) {
+        bubble.style.opacity = '0';
+        bubble.style.transform = 'translate(-50%, -50%) scale(0.5)';
+    }
+    
+    setTimeout(() => {
+        if(overlay) overlay.style.display = 'none';
+        if(bubble) { bubble.style.display = 'none'; bubble.style.transform = ''; }
+    }, 500);
+    localStorage.setItem('myths_guide_completed', 'true');
+}
+
+window.addEventListener('load', () => {
+    if (!localStorage.getItem('myths_guide_completed')) {
+        setTimeout(startSovereignGuide, 3000);
+    }
+});
 </script>
 </body>
 </html>

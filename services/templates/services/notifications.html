@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Activity Center" %} — {% trans "Notifications" %}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 4rem; padding-bottom: 8rem;">
+  
+  <!-- Sound Source -->
+  <audio id="notif-ping-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+  <!-- Header -->
+  <div class="page-header reveal" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem;">
+    <div>
+      <h1 class="section-heading" style="font-size: 2.8rem; margin-bottom: 0.5rem;"><i class="fas fa-bell-on" style="color: var(--primary); margin-right: 0.8rem;"></i> {% trans "Notifications" %}</h1>
+      <p class="section-subtext" style="margin: 0; color: var(--gray-500);">{% trans "Stay updated with your project milestones and account activity." %}</p>
+    </div>
+    {% if unread_count > 0 %}
+      <div style="background: rgba(79, 70, 229, 0.1); color: var(--primary); padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 700; font-size: 0.9rem;">
+        <i class="fas fa-circle" style="font-size: 0.6rem; margin-right: 0.5rem; vertical-align: middle;"></i>
+        {{ unread_count }} {% trans "New Updates" %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    <div class="notifications-feed reveal">
+      {% for notif in notifications %}
+        <div class="premium-about-card notif-card-item {% if not notif.is_read %}unread-glow{% endif %} reveal" style="padding: 1.8rem; margin-bottom: 1.5rem; border: 1px solid var(--border-color); display: grid; grid-template-columns: 65px 1fr auto; gap: 1.5rem; align-items: center; transition: all 0.4s ease;">
+          
+          <!-- Icon Circle -->
+          <div class="notif-icon-circle" style="width: 65px; height: 65px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: rgba(79, 70, 229, 0.05); color: var(--primary);">
+            {% if notif.notification_type == 'order' %}<i class="fas fa-shopping-bag"></i>
+            {% elif notif.notification_type == 'payment' %}<i class="fas fa-wallet"></i>
+            {% elif notif.notification_type == 'review' %}<i class="fas fa-star-shooting"></i>
+            {% elif notif.notification_type == 'message' %}<i class="fas fa-comment-dots"></i>
+            {% elif notif.notification_type == 'dispute' %}<i class="fas fa-shield-virus"></i>
+            {% else %}<i class="fas fa-broadcast-tower"></i>
+            {% endif %}
+          </div>
+
+          <!-- Body -->
+          <div class="notif-content-wrap">
+            <h4 style="margin: 0 0 0.4rem 0; font-size: 1.15rem; font-weight: 700; color: var(--gray-900);">{{ notif.title }}</h4>
+            <p style="margin: 0 0 0.8rem 0; color: var(--gray-600); line-height: 1.5; font-size: 1.05rem;">{{ notif.message }}</p>
+            <div style="font-size: 0.85rem; color: var(--gray-400); font-weight: 600;">
+              <i class="far fa-clock" style="margin-right: 0.3rem;"></i> {{ notif.created_at|timesince }} {% trans "ago" %}
+            </div>
+          </div>
+
+          <!-- Action -->
+          {% if notif.link %}
+            <a href="{{ notif.link }}" class="btn-primary" style="width: 50px; height: 50px; border-radius: 15px; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(79, 70, 229, 0.1); color: var(--primary); border: none;">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state-wrap center reveal" style="text-align: center; padding: 8rem 2rem; border: 2px dashed var(--border-color); border-radius: var(--radius-lg);">
+      <div style="font-size: 6rem; color: var(--gray-200); margin-bottom: 2rem;">
+        <i class="fas fa-ghost"></i>
+      </div>
+      <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">{% trans "The Quiet Zone" %}</h2>
+      <p class="section-subtext" style="max-width: 500px; margin: 0 auto 3rem auto;">
+        {% trans "It's all quiet here for now. We'll ping you as soon as something exciting happens!" %}
+      </p>
+      <a href="{% url 'home' %}" class="btn-primary" style="padding: 1.25rem 3.5rem; border-radius: 50px; font-weight: 700;">
+        {% trans "Explore the Hub" %}
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Play Sound
+    const sound = document.getElementById('notif-ping-sound');
+    if (sound) {
+        // Try to play sound (browsers might block autoplay without interaction)
+        setTimeout(() => {
+            sound.play().catch(e => console.log("Sound autoplay blocked:", e));
+        }, 500);
+    }
+
+    // 2. Clear Navbar Count (Optimistic UI)
+    const countBadge = document.querySelector('.notif-badge'); // Update selector if different
+    if (countBadge) {
+        countBadge.style.display = 'none';
+    }
+});
+</script>
+
+<style>
+.notif-card-item:hover {
+  border-color: var(--primary) !important;
+  transform: translateX(10px) translateY(-5px) !important;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.1) !important;
+}
+
+.unread-glow {
+  background: rgba(79, 70, 229, 0.02) !important;
+  border-left: 4px solid var(--primary) !important;
+}
+
+html.dark-mode .unread-glow {
+  background: rgba(79, 70, 229, 0.05) !important;
+}
+
+.notif-icon-circle {
+  transition: all 0.3s ease;
+}
+
+.notif-card-item:hover .notif-icon-circle {
+  background: var(--primary) !important;
+  color: white !important;
+  transform: rotate(10deg);
+}
+
+@media (max-width: 768px) {
+  .notif-card-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
+  }
+}
+</style>
+{% endblock %}

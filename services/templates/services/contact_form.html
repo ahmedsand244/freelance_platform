@@ -1,16 +1,72 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
+
+{% block title %}{% trans "Secure Contact" %} — {{ organizer.name }}{% endblock %}
 
 {% block content %}
-<h2 class="page-title">{% trans "Contact" %} {{ organizer.name }}</h2>
+<div class="container" style="padding-top: 5rem; padding-bottom: 8rem; max-width: 700px;">
+  
+  <!-- Provider Identity Header -->
+  <div class="reveal center" style="margin-bottom: 4rem; text-align: center;">
+    <div style="display: inline-block; margin-bottom: 1.5rem; position: relative;">
+      {% if organizer.profile_picture %}
+        <img src="{{ organizer.profile_picture.url }}" alt="{{ organizer.name }}" style="width: 120px; height: 120px; border-radius: 35px; object-fit: cover; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);">
+      {% else %}
+        <div style="width: 120px; height: 120px; border-radius: 35px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 800; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);">{{ organizer.name|first|upper }}</div>
+      {% endif %}
+      <div style="position: absolute; bottom: -5px; right: -5px; width: 30px; height: 30px; background: #2ecc71; border: 4px solid white; border-radius: 50%; box-shadow: 0 5px 10px rgba(0,0,0,0.1);"></div>
+    </div>
+    
+    <h2 class="section-heading" style="font-size: 2.2rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--primary), #4338ca); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{% trans "Secure Message to" %} {{ organizer.name }}</h2>
+    <p style="color: var(--gray-500); font-weight: 600; font-size: 1.1rem;">{% trans "Our experts typically respond in less than 2 hours." %}</p>
+  </div>
 
-<form method="POST" class="contact-form">
-  {% csrf_token %}
-  
-  <input type="text" name="name" placeholder="{% trans 'Your Name' %}" class="form-input" required>
-  
-  <textarea name="message" rows="5" placeholder="{% trans 'Write your message' %}" class="form-textarea" required></textarea>
-  
-  <button type="submit" class="submit-btn">{% trans "Send Message" %}</button>
-</form>
+  <!-- Premium Contact Form -->
+  <div class="premium-about-card reveal" style="padding: 3.5rem; border-radius: 30px; border: 1.5px solid var(--border-color); background: rgba(79, 70, 229, 0.02); box-shadow: 0 40px 80px rgba(0,0,0,0.06);">
+    <form method="POST" class="premium-form">
+      {% csrf_token %}
+      
+      <div class="form-group" style="margin-bottom: 2.5rem;">
+        <label for="name" class="form-label" style="font-weight: 700; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "Your Full Name" %}</label>
+        <div style="position: relative;">
+          <i class="far fa-user" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.1rem; opacity: 0.6;"></i>
+          <input type="text" name="name" id="name" placeholder="{% trans 'Enter your name' %}" class="form-input" style="padding-left: 3.2rem; border-radius: 15px; background: var(--card-bg);" required autocomplete="name">
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-bottom: 3.5rem;">
+        <label for="message" class="form-label" style="font-weight: 700; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "The Details" %}</label>
+        <textarea name="message" id="message" rows="6" placeholder="{% trans 'Start typing your request or questions here...' %}" class="form-textarea" style="border-radius: 15px; background: var(--card-bg); padding: 1.2rem;" required autocomplete="off"></textarea>
+      </div>
+      
+      <button type="submit" class="btn-primary buy-btn-glow" style="width: 100%; padding: 1.5rem; border-radius: 18px; font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 1rem; border: none; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);">
+        <i class="fas fa-paper-plane"></i> {% trans "Send Professional Inquiry" %}
+      </button>
+
+      <div style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; color: #2ecc71; font-weight: 700; font-size: 0.85rem;">
+        <i class="fas fa-shield-check"></i> {% trans "Your communication is encrypted and private." %}
+      </div>
+    </form>
+  </div>
+
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="{% url 'organizer_detail' organizer.id %}" style="text-decoration: none; color: var(--gray-400); font-weight: 700; font-size: 0.9rem;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--gray-400)'">
+      <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> {% trans "Back to Expert Profile" %}
+    </a>
+  </div>
+
+</div>
+
+<style>
+html.dark-mode .premium-about-card {
+  background: rgba(25, 25, 25, 0.8) !important;
+}
+html.dark-mode .section-heading {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+}
+html.dark-mode .form-label {
+  color: #ffffff !important;
+}
+</style>
 {% endblock %}

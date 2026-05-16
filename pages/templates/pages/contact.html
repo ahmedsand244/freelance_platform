@@ -1,34 +1,126 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}{% trans "Contact Us" %}{% endblock %}
+{% load i18n static %}
+
+{% block title %}{% trans "Get in Touch" %} — Freelance Yard{% endblock %}
 
 {% block content %}
-<div class="contact-section {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-  <h1>📬 {% trans "Contact Us" %}</h1>
-  <p>{% trans "We’d love to hear from you. Please fill out the form below or reach out directly." %}</p>
+<div class="container" style="padding-top: 5rem; padding-bottom: 8rem; max-width: 1200px;">
 
-  <ul class="contact-info">
-    <li>📞 {% trans "Phone" %}: 01012345678</li>
-    <li>📧 {% trans "Email" %}: myths.solutions@gmail.com</li>
-    <li>📍 {% trans "Address" %}: Cairo, Egypt</li>
-  </ul>
+  <!-- Hero Section -->
+  <div class="reveal center" style="text-align: center; margin-bottom: 5rem;">
+    <span class="section-badge" style="margin-bottom: 1.5rem;">📬 {% trans "Contact Us" %}</span>
+    <h1 class="section-heading" style="font-size: 3.5rem; margin-bottom: 1rem;">{% trans "Let's Start a Conversation." %}</h1>
+    <p class="section-subtext" style="font-size: 1.2rem; max-width: 600px; margin: 0 auto;">{% trans "Whether you have a question, a project idea, or just want to say hi, our team is here for you." %}</p>
+  </div>
 
-  {% if success %}
-    <p class="success-msg">✅ {% trans "Your message has been sent successfully!" %}</p>
-  {% endif %}
+  <div class="row reveal" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 4rem; align-items: start;">
+    
+    <!-- Left Col: Contact Info Cards -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Phone Card -->
+      <div class="premium-about-card" style="padding: 2.5rem; border-radius: 30px; border: 1.5px solid var(--border-color); display: flex; align-items: center; gap: 1.5rem; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateX(10px)'" onmouseout="this.style.transform='translateX(0)'">
+        <div style="width: 60px; height: 60px; border-radius: 18px; background: rgba(46, 204, 113, 0.1); color: #2ecc71; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+          <i class="fas fa-phone-alt"></i>
+        </div>
+        <div>
+          <span style="font-weight: 800; color: var(--gray-500); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">{% trans "Phone Support" %}</span>
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">01012345678</div>
+        </div>
+      </div>
 
-  <form method="post" action="{% url 'contact' %}" class="contact-form">
-    {% csrf_token %}
-    <label for="name">{% trans "Name:" %}</label>
-    <input type="text" name="name" required placeholder="{% trans 'Your full name' %}">
+      <!-- Email Card -->
+      <div class="premium-about-card" style="padding: 2.5rem; border-radius: 30px; border: 1.5px solid var(--border-color); display: flex; align-items: center; gap: 1.5rem; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateX(10px)'" onmouseout="this.style.transform='translateX(0)'">
+        <div style="width: 60px; height: 60px; border-radius: 18px; background: rgba(79, 70, 229, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+          <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <div>
+          <span style="font-weight: 800; color: var(--gray-500); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">{% trans "Email Correspondence" %}</span>
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">myths.solutions@gmail.com</div>
+        </div>
+      </div>
 
-    <label for="email">{% trans "Email:" %}</label>
-    <input type="email" name="email" required placeholder="{% trans 'Your email address' %}">
+      <!-- Address Card -->
+      <div class="premium-about-card" style="padding: 2.5rem; border-radius: 30px; border: 1.5px solid var(--border-color); display: flex; align-items: center; gap: 1.5rem; transition: transform 0.3s ease;" onmouseover="this.style.transform='translateX(10px)'" onmouseout="this.style.transform='translateX(0)'">
+        <div style="width: 60px; height: 60px; border-radius: 18px; background: rgba(243, 156, 18, 0.1); color: #f39c12; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+          <i class="fas fa-map-marked-alt"></i>
+        </div>
+        <div>
+          <span style="font-weight: 800; color: var(--gray-500); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">{% trans "Regional Office" %}</span>
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--gray-900); margin-top: 0.2rem;">Cairo, Egypt</div>
+        </div>
+      </div>
 
-    <label for="message">{% trans "Message:" %}</label>
-    <textarea name="message" rows="5" required placeholder="{% trans 'Write your message...' %}"></textarea>
+      <div style="margin-top: 2rem; padding: 2rem; background: var(--primary); border-radius: 30px; color: white; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);">
+        <h4 style="font-weight: 900; margin-bottom: 1rem;">{% trans "Join the Network" %}</h4>
+        <div style="display: flex; gap: 1.5rem; font-size: 1.5rem;">
+          <a href="#" style="color: white; opacity: 0.8;"><i class="fab fa-instagram"></i></a>
+          <a href="#" style="color: white; opacity: 0.8;"><i class="fab fa-linkedin"></i></a>
+          <a href="#" style="color: white; opacity: 0.8;"><i class="fab fa-facebook"></i></a>
+        </div>
+      </div>
 
-    <button type="submit" class="submit-btn">📨 {% trans "Send Message" %}</button>
-  </form>
+    </div>
+
+    <!-- Right Col: Contact Form -->
+    <div class="premium-about-card" style="padding: 4rem; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); box-shadow: 0 40px 100px rgba(0,0,0,0.06);">
+      
+      {% if success %}
+        <div class="reveal" style="padding: 2rem; border-radius: 20px; background: #d4edda; color: #155724; display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; font-weight: 700;">
+          <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+          {% trans "Your message crystalized! We'll get back to you shortly." %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'contact' %}" class="premium-form">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+          
+          <div class="form-group">
+            <label for="name" class="form-label" style="font-weight: 800; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "Full Professional Name" %}</label>
+            <div style="position: relative;">
+              <i class="far fa-user" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.1rem; opacity: 0.6;"></i>
+              <input type="text" name="name" id="name" required placeholder="{% trans 'What should we call you?' %}" class="form-input" style="padding-left: 3.2rem; border-radius: 15px; border-width: 1.5px;" autocomplete="name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label" style="font-weight: 800; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "Corporate or Private Email" %}</label>
+            <div style="position: relative;">
+              <i class="far fa-envelope" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.1rem; opacity: 0.6;"></i>
+              <input type="email" name="email" id="email" required placeholder="{% trans 'E.g., hello@example.com' %}" class="form-input" style="padding-left: 3.2rem; border-radius: 15px; border-width: 1.5px;" autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="message" class="form-label" style="font-weight: 800; color: var(--gray-900); display: block; margin-bottom: 0.8rem;">{% trans "The Nature of your Inquiry" %}</label>
+            <textarea name="message" id="message" rows="5" required placeholder="{% trans 'Tell us how we can help...' %}" class="form-textarea" style="padding: 1.5rem; border-radius: 20px; border-width: 1.5px;" autocomplete="off"></textarea>
+          </div>
+
+          <div style="margin-top: 1rem;">
+            <button type="submit" class="btn-primary buy-btn-glow" style="width: 100%; border-radius: 20px; padding: 1.6rem; font-size: 1.3rem; font-weight: 900; border: none; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);">
+              <i class="fas fa-paper-plane" style="margin-right: 0.8rem;"></i> {% trans "Send Professional Message" %}
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+  </div>
+
 </div>
+
+<style>
+html.dark-mode .premium-about-card {
+  background: rgba(25, 25, 25, 0.8) !important;
+}
+html.dark-mode .form-label, html.dark-mode h4, html.dark-mode h1 {
+  color: #ffffff !important;
+}
+html.dark-mode .section-heading {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+}
+</style>
 {% endblock %}

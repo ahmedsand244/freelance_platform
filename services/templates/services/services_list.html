@@ -1,33 +1,126 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load static i18n %}
 
 {% block title %}{% trans "Available Services" %}{% endblock %}
 
 {% block content %}
-<div class="services-pages">
+<div class="container" style="padding-top: 3rem;">
+  
+  <div class="section-header-wrap">
+    <div class="section-header">
+      <div>
+        <span class="section-badge">🎯 {% trans "Marketplace" %}</span>
+        <h1 class="section-heading">{% trans "Explore All Services" %}</h1>
+        <p class="section-subtext">{% trans "Find everything from creative design to expert engineering" %}</p>
+      </div>
+    </div>
 
-  <h1 class="page-title">{% trans "Available Services" %}</h1>
+    <!-- QUICK CATEGORY NAV ( Pills Style ) -->
+    <div class="quick-nav-wrapper">
+      <div class="quick-nav-list">
+        {% for category in categories %}
+          <a href="#cat-{{ category.id }}" class="quick-nav-item">
+            <i class="{% if category.icon %}{{ category.icon }}{% else %}fas fa-briefcase{% endif %}"></i>
+            {% trans category.name %}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
   {% for category in categories %}
-    <div class="category-blocks">
-      <h2 class="category-titles">
-        <a href="{% url 'subcategories' category.id %}" class="category-links">
-          {{ category.name }}
+    <div class="category-section reveal" id="cat-{{ category.id }}">
+      <div class="section-header">
+        <div>
+          <h2 class="section-heading" style="font-size: 1.8rem;">
+            <i class="{% if category.icon %}{{ category.icon }}{% else %}fas fa-tag{% endif %}" style="color: var(--primary); margin-right: 0.5rem;"></i>
+            {% trans category.name %}
+          </h2>
+          {% if category.description %}
+            <p class="section-subtext">{% trans category.description %}</p>
+          {% endif %}
+        </div>
+        <a href="{% url 'subcategories' category.id %}" class="section-link">
+          {% trans "View Full Category" %} <i class="fas fa-arrow-right"></i>
         </a>
-      </h2>
-      <p class="category-descriptions">{{ category.description }}</p>
+      </div>
 
-      <ul class="service-lists">
+      <div class="services-grid">
         {% for service in category.services.all %}
-          <li class="service-items">
-            <strong class="service-titles">{{ service.title }}</strong>
-            <p class="service-descriptions">{{ service.description }}</p>
-            {% if service.image %}
-              <img src="{{ service.image.url }}" loading="lazy" alt="{{ service.title }}" class="service-images">
-            {% endif %}
-          </li>
+          {% if service.is_active %}
+            <article class="service-card reveal">
+              <div class="service-card-img-wrap">
+                {% if service.image %}
+                  <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-card-img" loading="lazy">
+                {% else %}
+                  <div class="service-card-img-placeholder"><i class="fas fa-briefcase"></i></div>
+                {% endif %}
+                {% if user.is_authenticated %}
+                  <a href="{% url 'toggle_wishlist' service.id %}" class="wishlist-toggle-btn" 
+                     title="{% trans 'Add to Wishlist' %}">
+                    <i class="fas fa-heart"></i>
+                  </a>
+                {% endif %}
+              </div>
+              
+              <div class="service-card-body">
+                {% if service.provider %}
+                  <div class="service-card-provider">
+                    {% if service.provider.profile_picture %}
+                      <img src="{{ service.provider.profile_picture.url }}" alt="" class="provider-mini-avatar">
+                    {% else %}
+                      <div class="provider-mini-avatar-ph">{{ service.provider.user.username|first|upper }}</div>
+                    {% endif %}
+                    <span>{{ service.provider.user.username }}</span>
+                  </div>
+                {% endif %}
+                
+                <h3 class="service-card-title">
+                  <a href="{% url 'service_detail' service.id %}">{% trans service.title %}</a>
+                </h3>
+                
+                {% trans service.description as trans_desc %}
+                <p class="service-card-desc">{{ trans_desc|truncatechars:80 }}</p>
+                
+                <div class="service-card-meta">
+                  {% if service.average_rating > 0 %}
+                    <div class="service-rating">
+                      <i class="fas fa-star star-icon"></i>
+                      <span class="rating-score">{{ service.average_rating }}</span>
+                      <span class="review-count">({{ service.review_count }})</span>
+                    </div>
+                  {% endif %}
+                  {% if service.delivery_days %}
+                    <span class="delivery-badge" title="{% trans 'Delivery Time' %}">
+                      <i class="fas fa-clock"></i> {{ service.delivery_days }} {% trans "Days" %}
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="service-card-footer">
+                <div class="service-price-block">
+                  <span class="service-price-label">{% trans "Starting from" %}</span>
+                  <span class="service-price">{{ service.price }} {% trans "EGP" %}</span>
+                </div>
+                <a href="{% url 'service_detail' service.id %}" class="service-detail-btn">{% trans "Details" %}</a>
+              </div>
+            </article>
+          {% endif %}
+        {% empty %}
+          <div class="empty-state" style="grid-column: 1 / -1; padding: 3rem; text-align: center; border: 2px dashed var(--border-color); border-radius: var(--radius-md);">
+            <i class="fas fa-layer-group" style="font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem; display: block;"></i>
+            <p style="color: var(--gray-600);">{% trans "No services added to this category yet." %}</p>
+          </div>
         {% endfor %}
-      </ul>
+      </div>
+    </div>
+  {% empty %}
+    <div class="empty-state" style="padding: 10rem 2rem; text-align: center;">
+      <i class="fas fa-search" style="font-size: 4rem; color: var(--gray-200); margin-bottom: 1.5rem; display: block;"></i>
+      <h2 style="color: var(--text-main);">{% trans "No services found." %}</h2>
+      <p style="color: var(--gray-600);">{% trans "We couldn't find any services matching your criteria." %}</p>
+      <a href="{% url 'home' %}" class="btn-primary" style="margin-top: 1.5rem;">{% trans "Go Home" %}</a>
     </div>
   {% endfor %}
 

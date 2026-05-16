@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f7f9fc; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h1 { color: #2563eb; font-size: 24px; margin-bottom: 20px; text-align: center; }
+        .hero { background: #eff6ff; padding: 20px; border-radius: 6px; margin: 20px 0; text-align: center; border: 1px solid #bfdbfe; }
+        p { line-height: 1.6; font-size: 16px; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #64748b; }
+        .btn { display: inline-block; padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Freelance Yard! 🎉</h1>
+        <p>Hi <strong>{{ user.username }}</strong>,</p>
+        <p>We are thrilled to officially welcome you to our marketplace. As a member of our community, you now have access to premium freelance talent and robust organizational tools.</p>
+        
+        <div class="hero">
+            <p><strong>Ready to start?</strong> Complete your profile outline to let others know who you are, or begin browsing our marketplace immediately.</p>
+        </div>
+        
+        <center>
+            <a href="{{ site_url }}/en/services/all/" class="btn">Explore Marketplace</a>
+        </center>
+        
+        <div class="footer">
+            <p>© 2026 Freelance Yard (Myths Solutions). All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

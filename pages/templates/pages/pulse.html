@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}The Myths Pulse — Market Discovery Hub by Ahmed Torki{% endblock %}
+
+{% block content %}
+<!-- Include Chart.js for premium visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="pulse-hub" style="padding-top: 6rem; padding-bottom: 8rem; min-height: 100vh; background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.04), transparent 40%), radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.03), transparent 40%); overflow: hidden;">
+    
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+        
+        <!-- 🏆 PULSE HEADER -->
+        <div class="reveal" style="text-align: center; margin-bottom: 5rem;">
+            <div style="display: inline-flex; align-items: center; gap: 15px; margin-bottom: 1.5rem; padding: 10px 25px; border-radius: 50px; background: rgba(79, 70, 229, 0.08); border: 1.5px solid rgba(79, 70, 229, 0.15); backdrop-filter: blur(10px);">
+                <div class="heartbeat" style="width: 10px; height: 10px; background: #4f46e5; border-radius: 50%;"></div>
+                <span style="font-size: 0.85rem; font-weight: 950; text-transform: uppercase; letter-spacing: 3px; color: var(--primary);">{% trans "The Market Nebula Hub" %}</span>
+            </div>
+            <h1 style="font-size: 4.5rem; font-weight: 950; margin-bottom: 1rem; letter-spacing: -3px; background: linear-gradient(135deg, var(--primary), #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">The Myths Pulse</h1>
+            <p style="color: var(--gray-500); font-weight: 700; font-size: 1.25rem; max-width: 700px; margin: 0 auto;">{% trans "Real-time analytics and strategic market insights of the ecosystem curated for" %} <strong>Ahmed Torki</strong>.</p>
+        </div>
+
+        <!-- 🍱 BENTO ANALYTICS GRID -->
+        <div class="bento-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 240px; gap: 1.5rem; margin-bottom: 5rem;">
+            
+            <!-- Tile 1: Liquidity (Revenue) - Span 2 Columns -->
+            <div class="bento-tile reveal" style="grid-column: span 2; grid-row: span 1; background: var(--card-bg); border-radius: 35px; border: 1.5px solid var(--border-color); padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; backdrop-filter: blur(30px); position: relative; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.03);">
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(79, 70, 229, 0.1), transparent 70%);"></div>
+                <h4 style="font-size: 0.75rem; font-weight: 950; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400); margin-bottom: 1.5rem;">{% trans "Market Liquidity" %} (EGP)</h4>
+                <div style="display: flex; align-items: baseline; gap: 10px;">
+                    <span id="liquidity-count" style="font-size: 4.5rem; font-weight: 950; color: var(--gray-900); letter-spacing: -2px;">{{ total_revenue|floatformat:0 }}</span>
+                    <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">EGP</span>
+                </div>
+                <div style="margin-top: 1rem; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-chart-line"></i> +12.5% {% trans "Economic Growth" %}
+                </div>
+            </div>
+
+            <!-- Tile 2: Active Experts - Span 1 Column -->
+            <div class="bento-tile reveal" style="grid-column: span 1; background: var(--card-bg); border-radius: 35px; border: 1.5px solid var(--border-color); padding: 2.5rem; text-align: center; display: flex; flex-direction: column; justify-content: center; backdrop-filter: blur(30px); box-shadow: 0 40px 100px rgba(0,0,0,0.02);">
+                <div style="font-size: 2.5rem; color: #f59e0b; margin-bottom: 1rem;"><i class="fas fa-crown"></i></div>
+                <div id="expert-count" style="font-size: 3rem; font-weight: 950; color: var(--gray-900);">{{ expert_force }}</div>
+                <h4 style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: var(--gray-400);">{% trans "Verified Elite Force" %}</h4>
+            </div>
+
+            <!-- Tile 3: Success Orders - Span 1 Column -->
+            <div class="bento-tile reveal" style="grid-column: span 1; background: linear-gradient(135deg, #4f46e5, #9333ea); border-radius: 35px; padding: 2.5rem; text-align: center; display: flex; flex-direction: column; justify-content: center; color: white; box-shadow: 0 30px 60px rgba(79, 70, 229, 0.3);">
+                <div style="font-size: 2.5rem; color: rgba(255,255,255,0.4); margin-bottom: 1rem;"><i class="fas fa-rocket"></i></div>
+                <div id="success-count" style="font-size: 3rem; font-weight: 950;">{{ success_orders }}</div>
+                <h4 style="font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.7);">{% trans "Completed Quests" %}</h4>
+            </div>
+
+            <!-- Tile 4: Main Growth Chart - Span 3 Columns, 2 Rows -->
+            <div class="bento-tile reveal" style="grid-column: span 3; grid-row: span 2; background: var(--card-bg); border-radius: 35px; border: 1.5px solid var(--border-color); padding: 3rem; display: flex; flex-direction: column; backdrop-filter: blur(30px); box-shadow: 0 40px 100px rgba(0,0,0,0.03);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                    <div>
+                        <h4 style="font-size: 1.4rem; font-weight: 950; color: var(--gray-900); letter-spacing: -1px; margin-bottom: 5px;">{% trans "Market Momentum" %}</h4>
+                        <p style="font-size: 0.85rem; font-weight: 700; color: var(--gray-400);">{% trans "Volume of trade and ecosystem interactions over time." %}</p>
+                    </div>
+                    <div style="padding: 10px 20px; border-radius: 12px; background: rgba(0,0,0,0.05); font-size: 0.75rem; font-weight: 900; color: var(--gray-500);">2026 ALPHA PHASE</div>
+                </div>
+                <div style="flex: 1; min-height: 0;">
+                    <canvas id="momentumChart" style="width: 100%; height: 100%;"></canvas>
+                </div>
+            </div>
+
+            <!-- Tile 5: Sphere Dominance - Span 1 Column, 2 Rows -->
+            <div class="bento-tile reveal" style="grid-column: span 1; grid-row: span 2; background: var(--card-bg); border-radius: 35px; border: 1.5px solid var(--border-color); padding: 2.5rem; display: flex; flex-direction: column; backdrop-filter: blur(30px); box-shadow: 0 40px 100px rgba(0,0,0,0.03);">
+                <h4 style="font-size: 1.1rem; font-weight: 950; color: var(--gray-900); letter-spacing: -0.5px; margin-bottom: 1.5rem;">{% trans "Active Spheres" %}</h4>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                    {% for cat in categories_stats %}
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 10px; background: rgba(79, 70, 229, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                           <i class="fas {{ cat.icon|default:'fa-star' }}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 800; margin-bottom: 5px;">
+                                <span style="color: var(--gray-800);">{{ cat.name }}</span>
+                                <span style="color: var(--primary);">{{ cat.count }}</span>
+                            </div>
+                            <!-- Small Progress Rail -->
+                            <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; overflow: hidden;">
+                                <div style="width: {% widthratio cat.count active_services 100 %}%; height: 100%; background: var(--primary);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 2rem; border-top: 1.5px solid var(--border-color); padding-top: 1.5rem; text-align: center;">
+                    <p style="font-size: 0.75rem; font-weight: 800; color: var(--gray-400);">{% trans "Total Service Nodes" %}: <strong>{{ active_services }}</strong></p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 📬 HUB FOOTER -->
+        <div class="reveal" style="text-align: center; color: var(--gray-400); font-weight: 900; letter-spacing: 4px; text-transform: uppercase; font-size: 0.8rem;">
+            Discovering Growth by <span style="color: var(--gray-900);">Ahmed Torki</span>
+        </div>
+    </div>
+</div>
+
+<style>
+.heartbeat { animation: heart 1.5s infinite; }
+@keyframes heart {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+.bento-tile { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.bento-tile:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 60px 120px rgba(79, 70, 229, 0.1); border-color: var(--primary); }
+
+/* DARK MODE PULSE ADAPTATION */
+html.dark-mode .bento-tile { background: rgba(15, 23, 42, 0.8) !important; border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .bento-tile h4, html.dark-mode .bento-tile #liquidity-count, html.dark-mode .bento-tile #expert-count, html.dark-mode .bento-tile #success-count, html.dark-mode .bento-tile span { color: white !important; }
+html.dark-mode .bento-tile p { color: #94a3b8 !important; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('momentumChart').getContext('2d');
+    
+    // Create a beautiful Indigo Gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
+    gradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+    const momentumChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+            datasets: [{
+                label: 'Market Volume (EGP)',
+                data: [12000, 19000, 15000, 25000, 22000, 30000, 45000], // Simulated growth
+                borderColor: '#4f46e5',
+                borderWidth: 4,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#4f46e5',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#64748b',
+                        font: { family: 'inherit', weight: '800' }
+                    }
+                }
+            }
+        }
+    });
+
+    // Simple number count animation
+    function animateCount(id, target) {
+        let current = 0;
+        const inc = target / 100;
+        const el = document.getElementById(id);
+        const timer = setInterval(() => {
+            current += inc;
+            if (current >= target) {
+                el.innerText = Math.round(target).toLocaleString();
+                clearInterval(timer);
+            } else {
+                el.innerText = Math.round(current).toLocaleString();
+            }
+        }, 10);
+    }
+
+    animateCount('liquidity-count', {{ total_revenue|default:0 }});
+    animateCount('expert-count', {{ expert_force|default:0 }});
+    animateCount('success-count', {{ success_orders|default:0 }});
+});
+</script>
+{% endblock %}

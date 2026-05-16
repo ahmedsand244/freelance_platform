@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Terms of Engagement" %} — Freelance Yard{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 6rem; padding-bottom: 8rem; max-width: 1000px;">
+    
+    <div class="premium-about-card reveal" style="padding: 5rem; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); box-shadow: 0 40px 100px rgba(0,0,0,0.06);">
+        
+        <div style="text-align: center; margin-bottom: 5rem; padding-bottom: 3rem; border-bottom: 1.5px solid var(--border-color);">
+            <div style="width: 80px; height: 80px; border-radius: 25px; background: rgba(79, 70, 229, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--primary); font-size: 2.2rem;">
+                <i class="fas fa-file-signature"></i>
+            </div>
+            <h1 style="font-size: 3.5rem; font-weight: 950; margin-bottom: 1rem; letter-spacing: -1.5px;">{% trans "Terms of Engagement" %}</h1>
+            <p style="color: var(--gray-400); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem;">{% trans "Standard Protocol" %} — {% trans "Last Updated" %}: April 2026</p>
+        </div>
+        
+        <div class="legal-content-flow" style="display: flex; flex-direction: column; gap: 4rem;">
+            
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">01.</span> {% trans "Introduction" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "Welcome to Freelance Yard. By accessing our website, you agree to be bound by these Terms and Conditions. Please read them carefully." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">02.</span> {% trans "User Accounts" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "To access certain features of the platform, you must register for an account. You agree to provide accurate, current, and complete information during the registration process." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">03.</span> {% trans "Escrow & Payments" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "All transactions on Freelance Yard are secured through our Escrow mechanism. Funds are held safely until the delivery of work is accepted." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">04.</span> {% trans "Prohibited Activities" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "Users may not engage in outside transactions, harassment, or submit fraudulent services. Violations will result in immediate termination." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">05.</span> {% trans "Liability" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "Freelance Yard acts exclusively as a marketplace and holds no liability for the exact quality of services provided by third-party freelancers." %}</p>
+            </section>
+
+        </div>
+
+        <div style="margin-top: 6rem; padding: 3rem; border-radius: 25px; background: rgba(79, 70, 229, 0.03); border: 1.5px solid var(--border-color); text-align: center;">
+            <p style="font-weight: 800; color: var(--gray-500); margin-bottom: 1.5rem;">{% trans "Do you accept this sovereign agreement?" %}</p>
+            <div style="display: flex; gap: 1.5rem; justify-content: center;">
+                <a href="{% url 'contact' %}" class="btn-primary" style="padding: 1.2rem 2.5rem; border-radius: 15px; font-weight: 900; text-decoration: none; display: inline-block;">{% trans "Inquire Protocols" %}</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+html.dark-mode .premium-about-card { background: rgba(25, 25, 25, 0.8) !important; }
+html.dark-mode h1, html.dark-mode h3 { color: #ffffff !important; }
+</style>
+{% endblock %}

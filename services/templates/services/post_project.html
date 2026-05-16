@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="post-project-wrapper py-5" style="background: var(--bg-main); min-height: 100vh; position: relative; overflow: hidden;">
+    <!-- Abstract Glows -->
+    <div style="position: absolute; top: -150px; left: -150px; width: 400px; height: 400px; background: rgba(79, 70, 229, 0.05); filter: blur(120px); border-radius: 50%;"></div>
+    <div style="position: absolute; bottom: -150px; right: -150px; width: 400px; height: 400px; background: rgba(16, 185, 129, 0.05); filter: blur(120px); border-radius: 50%;"></div>
+
+    <div class="container py-5" style="position: relative; z-index: 2;">
+        <div class="row justify-content: center;">
+            <div class="col-lg-7">
+                <div class="agora-project-card p-5 shadow-2xl" style="border-top: 10px solid var(--primary);">
+                    <!-- Form Header -->
+                    <div class="text-center mb-5">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary), #4338ca); border-radius: 30px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; margin: 0 auto 2rem; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);">
+                            <i class="fas fa-satellite-dish"></i>
+                        </div>
+                        <h1 style="font-weight: 1000; font-size: 3.5rem; color: var(--gray-900); letter-spacing: -2px; line-height: 1;">{% trans "Broadcast Your Need" %}</h1>
+                        <p style="font-size: 1.3rem; color: var(--gray-500); font-weight: 700; margin-top: 1rem;">{% trans "Let the most skilled imperial talents compete to bring your vision to life." %}</p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="imperial-group-stack" style="display: grid; gap: 2.5rem;">
+                            <!-- Project Title -->
+                            <div class="imperial-group">
+                                <label style="font-weight: 1000; font-size: 1rem; color: var(--gray-800); display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                    <i class="fas fa-heading" style="color: var(--primary);"></i> {% trans "Project Title" %}
+                                </label>
+                                {{ form.title }}
+                                <small style="display: block; margin-top: 0.5rem; font-weight: 700; color: var(--gray-400);">{% trans "Keep it clear and professional (e.g. Logo Design for a Tech Startup)" %}</small>
+                            </div>
+
+                            <div class="row">
+                                <!-- Category -->
+                                <div class="col-md-6">
+                                    <div class="imperial-group">
+                                        <label style="font-weight: 1000; font-size: 1rem; color: var(--gray-800); display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                            <i class="fas fa-layer-group" style="color: var(--primary);"></i> {% trans "Sovereign Category" %}
+                                        </label>
+                                        {{ form.category }}
+                                    </div>
+                                </div>
+                                <!-- Budget -->
+                                <div class="col-md-6">
+                                    <div class="imperial-group">
+                                        <label style="font-weight: 1000; font-size: 1rem; color: var(--gray-800); display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                            <i class="fas fa-coins" style="color: #f1c40f;"></i> {% trans "Maximum Budget (EGP)" %}
+                                        </label>
+                                        {{ form.budget }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="imperial-group">
+                                <label style="font-weight: 1000; font-size: 1rem; color: var(--gray-800); display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                    <i class="fas fa-align-left" style="color: var(--primary);"></i> {% trans "Mission Details" %}
+                                </label>
+                                {{ form.description }}
+                                <small style="display: block; margin-top: 0.5rem; font-weight: 700; color: var(--gray-400);">{% trans "Describe your requirements, goals, and any specific details for the craftsman." %}</small>
+                            </div>
+
+                            <!-- Delivery -->
+                            <div class="imperial-group">
+                                <label style="font-weight: 1000; font-size: 1rem; color: var(--gray-800); display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                    <i class="fas fa-hourglass-end" style="color: #e67e22;"></i> {% trans "Delivery Deadline (Days)" %}
+                                </label>
+                                {{ form.delivery_days }}
+                                <small style="display: block; margin-top: 0.5rem; font-weight: 700; color: var(--gray-400);">{% trans "How many days can you wait for this project?" %}</small>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="mt-4 pt-4" style="border-top: 2px dashed var(--border-color);">
+                                <button type="submit" class="btn btn-primary w-100 py-4 shadow-2xl" id="broadcast-btn" style="border-radius: 25px; font-weight: 1000; font-size: 1.5rem; letter-spacing: -1px;">
+                                    <i class="fas fa-paper-plane" style="margin-right: 12px;"></i> {% trans "Broadcast Sovereign Request" %}
+                                </button>
+                                <p class="text-center mt-4" style="font-weight: 800; color: var(--gray-400); font-size: 0.9rem;">
+                                    {% trans "By broadcasting, you agree to our Imperial Terms of Service." %}
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.imperial-group input, .imperial-group select, .imperial-group textarea {
+    width: 100%;
+    padding: 1.2rem 1.8rem !important;
+    border-radius: 20px !important;
+    background: rgba(0,0,0,0.02) !important;
+    border: 3px solid rgba(0,0,0,0.03) !important;
+    font-weight: 800;
+    font-size: 1.1rem !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.imperial-group input:focus, .imperial-group select:focus, .imperial-group textarea:focus {
+    background: white !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 15px 30px rgba(79, 70, 229, 0.15) !important;
+    transform: translateY(-3px);
+    outline: none !important;
+}
+
+#broadcast-btn:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(79, 70, 229, 0.4);
+}
+</style>
+{% endblock %}

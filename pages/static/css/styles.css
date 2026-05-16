@@ -59,13 +59,27 @@ body {
 }
 
 .language-select {
-  padding: 6px 8px;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  background-color: white;
-  color: #1a73e8;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.language-select:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: white;
+}
+
+html.dark-mode .language-select {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .dark-toggle {
@@ -1093,7 +1107,7 @@ html.dark-mode .submit-btn:hover {
 
 .service-cardm {
         background: #fff;
-    background-image: url(/static/images/ss2.jpg);
+    background-image: url(/static/images/16.jpg);
     background-size: cover;
     background-position: center;
     border-radius: 15px;

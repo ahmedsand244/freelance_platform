@@ -1,108 +1,148 @@
-{% extends 'base.html' %}
-{% load static %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ organizer.name }} — {% trans "Organizer Profile" %}{% endblock %}
 
 {% block content %}
-<div class="organizer-profile-container">
-
-  <!-- Organizer Info -->
-  <div class="organizer-header {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <img src="{{ organizer.image.url }}" alt="{{ organizer.name }}" class="organizer-avatar">
-    <div>
-      <h2 class="organizer-name">{{ organizer.name }}</h2>
-      <p class="organizer-bio">{{ organizer.bio }}</p>
+<div class="container" style="padding-top: 2rem; padding-bottom: 5rem;">
+  
+  <!-- Profile & Hero Header -->
+  <div class="premium-profile-header reveal" style="position: relative; margin-bottom: 4rem;">
+    <div class="profile-cover-wrap" style="height: 280px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #6366f1, #4f46e5); position: relative; overflow: hidden; box-shadow: var(--shadow-md);">
+      <div style="position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);"></div>
     </div>
-  </div>
-
-  <!-- Previous Works -->
-  <h3 class="section-title1 {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">🧰 {% trans "Previous Projects" %}</h3>
-  <div class="previous-works {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    {% for work in organizer.previous_works.all %}
-      <div class="work-card">
-        <img src="{{ work.image.url }}" class="work-image" alt="{% trans 'Previous Work' %}">
-        <a href="{{ work.link }}" target="_blank" class="work-link">{% trans "View Project" %}</a>
+    
+    <div class="profile-main-info" style="display: flex; flex-direction: column; align-items: center; margin-top: -90px; position: relative; z-index: 2;">
+      <div class="avatar-box" style="position: relative;">
+        <img src="{{ organizer.image.url }}" alt="{{ organizer.name }}" style="width: 180px; height: 180px; border-radius: 40px; border: 8px solid var(--card-bg); box-shadow: var(--shadow-lg); object-fit: cover; background: var(--card-bg); transform: rotate(-2deg);">
+        <div style="position: absolute; bottom: 15px; right: 15px; width: 30px; height: 30px; background: #2ecc71; border: 5px solid var(--card-bg); border-radius: 50%;" title="{% trans 'Active' %}"></div>
       </div>
-    {% empty %}
-      <p>{% trans "No projects have been added yet." %}</p>
-    {% endfor %}
-  </div>
-
-  <!-- Full Work Gallery -->
-  <h3 class="section-title1 {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">📁 {% trans "Work Gallery" %}</h3>
-  <div class="work-gallery {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    {% for work in organizer.works.all %}
-      <div class="gallery-card">
-        {% if work.image %}
-          <img src="{{ work.image.url }}" class="gallery-image">
-        {% endif %}
-        <h4 class="work-title">{{ work.title }}</h4>
-        {% if work.link %}
-          <a href="{{ work.link }}" target="_blank" class="project-link">{% trans "Project Link" %}</a>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-
-  <!-- Average Rating -->
-  <div class="star_reviewing {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <h4>⭐ {% blocktrans %}Average Rating: {{ average_rating }} / 5{% endblocktrans %}</h4>
-    <div class="star-displayg">
-      {% for i in "12345" %}
-        {% if forloop.counter <= average_rating|floatformat:0 %}
-          <span class="starg filledg">★</span>
-        {% elif forloop.counter0 < average_rating %}
-          <span class="starg halfg">★</span>
-        {% else %}
-          <span class="starg">☆</span>
-        {% endif %}
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Public Reviews -->
-  <h3 class="section-title1 {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">⭐ {% trans "Public Ratings" %}</h3>
-
-  {% for review in reviews %}
-    <div class="review-box public {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-      <div class="review-header">
-        <strong class="review-name">{{ review.name }}</strong>
-        <div class="review-stars">
-          {% for i in "12345" %}
-            {% if forloop.counter <= review.rating %}
-              <span class="star filled">★</span>
-            {% else %}
-              <span class="star">☆</span>
-            {% endif %}
-          {% endfor %}
+      
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <h1 class="section-heading" style="font-size: 2.8rem; margin-bottom: 0.2rem;">{{ organizer.name }}</h1>
+        <div style="display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.2rem;">
+          <span class="section-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);"><i class="fas fa-check-circle"></i> {% trans "Verified Expert" %}</span>
+          <span class="section-badge" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;"><i class="fas fa-star"></i> {{ average_rating }}/5</span>
         </div>
+        <p class="section-subtext" style="max-width: 650px; margin: 0 auto; color: var(--gray-600); line-height: 1.8;">{{ organizer.bio }}</p>
       </div>
-      <p class="review-comment">{{ review.comment }}</p>
-      <p class="timestamp">{{ review.created_at|date:"Y-m-d H:i" }}</p>
     </div>
-  {% endfor %}
+  </div>
 
-  <!-- Add Review -->
-  <h4 class="add-review-title {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">{% trans "Add Your Review:" %}</h4>
-  <form method="POST" class="review-form {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    {% csrf_token %}
+  <!-- Main Grid Content -->
+  <div class="row" style="display: grid; grid-template-columns: 1fr 350px; gap: 2.5rem;">
+    
+    <!-- Left Column: Gallery & Reviews -->
+    <div class="profile-left-col">
+      
+      <!-- Work Gallery -->
+      <div class="section-header-wrap reveal" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 class="section-heading" style="font-size: 1.6rem;"><i class="fas fa-folder-open" style="margin-right: 0.5rem; color: var(--primary);"></i> {% trans "Portfolio Showcase" %}</h3>
+      </div>
+      
+      <div class="services-grid reveal" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
+        {% for work in organizer.works.all %}
+          <div class="premium-about-card" style="padding: 0; overflow: hidden; height: 100%;">
+            {% if work.image %}
+              <img src="{{ work.image.url }}" alt="{{ work.title }}" style="width: 100%; height: 180px; object-fit: cover;">
+            {% endif %}
+            <div style="padding: 1.5rem;">
+              <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">{{ work.title }}</h4>
+              {% if work.link %}
+                <a href="{{ work.link }}" target="_blank" style="display: inline-block; margin-top: 0.8rem; color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;">{% trans "Review Website" %} <i class="fas fa-external-link-alt" style="font-size: 0.7rem; margin-left: 0.3rem;"></i></a>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="premium-about-card center" style="grid-column: 1/-1; padding: 3rem;">
+            <p class="section-subtext">{% trans "No portfolio items shared yet." %}</p>
+          </div>
+        {% endfor %}
+      </div>
 
-    <label for="name">{% trans "Name:" %}</label>
-    <input type="text" name="name" id="name" required>
-
-    <label for="rating">{% trans "Rating:" %}</label>
-    <div class="star-rating">
-      <input type="radio" name="rating" id="star5" value="5"><label for="star5" title="5 stars">★</label>
-      <input type="radio" name="rating" id="star4" value="4"><label for="star4" title="4 stars">★</label>
-      <input type="radio" name="rating" id="star3" value="3"><label for="star3" title="3 stars">★</label>
-      <input type="radio" name="rating" id="star2" value="2"><label for="star2" title="2 stars">★</label>
-      <input type="radio" name="rating" id="star1" value="1"><label for="star1" title="1 star">★</label>
+      <!-- Public Reviews List -->
+      <div class="section-header-wrap reveal" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h3 class="section-heading" style="font-size: 1.6rem;"><i class="fas fa-comments" style="margin-right: 0.5rem; color: var(--primary);"></i> {% trans "Commendations" %}</h3>
+      </div>
+      
+      <div class="reviews-stack reveal">
+        {% for review in reviews %}
+          <div class="premium-about-card" style="margin-bottom: 1.5rem; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+              <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="width: 45px; height: 45px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">{{ review.name|first|upper }}</div>
+                <div>
+                  <h5 style="margin: 0; font-size: 1rem; font-weight: 700;">{{ review.name }}</h5>
+                  <span style="font-size: 0.8rem; color: var(--gray-400);">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+              </div>
+              <div style="color: #f1c40f; letter-spacing: 2px;">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            <p style="margin: 0; line-height: 1.6; color: var(--gray-600); font-style: italic;">"{{ review.comment }}"</p>
+          </div>
+        {% empty %}
+          <p class="section-subtext">{% trans "Be the first to leave a feedback." %}</p>
+        {% endfor %}
+      </div>
     </div>
 
-    <label for="comment">{% trans "Comment:" %}</label>
-    <textarea name="comment" id="comment" rows="4" required></textarea>
+    <!-- Right Column: Sidebar Form -->
+    <div class="profile-sidebar reveal">
+      <div class="premium-about-card" style="position: sticky; top: 100px; padding: 2.5rem;">
+        <h3 class="section-heading" style="font-size: 1.4rem; margin-bottom: 0.5rem; text-align: center;">{% trans "Leave a Review" %}</h3>
+        <p class="section-subtext" style="text-align: center; margin-bottom: 2rem; font-size: 0.9rem;">{% trans "Share your success story with us." %}</p>
+        
+        <form method="POST" class="premium-form">
+          {% csrf_token %}
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label class="form-label">{% trans "Your Full Name" %}</label>
+            <input type="text" name="name" class="form-input" placeholder="{% trans 'e.g. Ahmed Ali' %}" required>
+          </div>
 
-    <button type="submit" class="submit-review-btn">{% trans "Submit Review" %}</button>
-  </form>
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label class="form-label">{% trans "Rating Scale" %}</label>
+            <div class="premium-star-rating" style="display: flex; flex-direction: row-reverse; justify-content: center; gap: 0.8rem;">
+              {% for i in "54321" %}
+                <input type="radio" name="rating" id="star{{i}}" value="{{i}}" style="display: none;" required>
+                <label for="star{{i}}" style="font-size: 2rem; color: var(--gray-300); cursor: pointer; transition: all 0.2s ease;">★</label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label class="form-label">{% trans "Your Experience" %}</label>
+            <textarea name="comment" class="form-input" rows="5" placeholder="{% trans 'Tell others about your event...' %}" required></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; border-radius: 12px; padding: 1.1rem;">
+            {% trans "Post My Review" %} <i class="fas fa-paper-plane" style="margin-left: 0.5rem;"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div> <!-- End Row -->
 
 </div>
+
+<style>
+/* Interactive Stars Styling */
+.premium-star-rating label:hover,
+.premium-star-rating label:hover ~ label,
+.premium-star-rating input:checked ~ label {
+  color: #f1c40f !important;
+  transform: scale(1.25);
+  text-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
+}
+
+@media (max-width: 992px) {
+  .row { grid-template-columns: 1fr; }
+  .profile-sidebar { order: -1; }
+  .profile-sidebar div { position: static !important; }
+}
+</style>
 {% endblock %}

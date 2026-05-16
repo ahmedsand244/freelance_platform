@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block content %}
+<div class="add-portfolio-wrapper py-5" style="background: var(--bg-main); min-height: 100vh;">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card shadow-lg p-5" style="border-radius: 40px; border: 1.5px solid rgba(67, 56, 202, 0.1);">
+                    <h1 style="font-weight: 950; font-size: 2.8rem; color: var(--gray-900); margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+                        🧱 {% trans "New Contribution" %}
+                    </h1>
+                    <p style="opacity: 0.6; font-weight: 700; font-size: 1.15rem; margin-bottom: 3rem;">{% trans "Add a new masterpiece to your professional gallery." %}</p>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-grid" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            {% for field in form %}
+                            <div class="imperial-form-field">
+                                <label style="display: block; font-weight: 950; font-size: 0.9rem; color: var(--gray-700); margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                <div class="text-danger mt-2">
+                                    {{ field.errors }}
+                                </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                <p style="font-size: 0.8rem; opacity: 0.4; margin-top: 0.5rem;">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            
+                            <div class="mt-4" style="display: flex; gap: 1.5rem;">
+                                <button type="submit" class="btn btn-primary w-100 py-3" style="border-radius: 20px; font-weight: 950; font-size: 1.2rem; box-shadow: 0 10px 20px rgba(67, 56, 202, 0.3);">
+                                    <i class="fas fa-hammer"></i> {% trans "Inscribe in Palace" %}
+                                </button>
+                                <a href="{% url 'manage_portfolio' %}" class="btn btn-outline-secondary w-100 py-3 d-flex align-items: center; justify-content: center;" style="border-radius: 20px; font-weight: 950;">
+                                    {% trans "Withdraw" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.imperial-form-field input, .imperial-form-field textarea {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border-radius: 18px !important;
+    background: rgba(0,0,0,0.03);
+    border: 2px solid rgba(0,0,0,0.05);
+    font-weight: 600;
+    transition: 0.3s;
+}
+.imperial-form-field input:focus, .imperial-form-field textarea:focus {
+    background: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.1);
+    outline: none;
+}
+</style>
+{% endblock %}

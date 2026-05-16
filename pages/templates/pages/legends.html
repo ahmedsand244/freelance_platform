@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}The Wall of Legends — Premium Success Hub by Ahmed Torki{% endblock %}
+
+{% block content %}
+<div class="legends-hub" style="padding-top: 6rem; padding-bottom: 10rem; min-height: 100vh; background: #0a0a0b; position: relative; overflow: hidden;">
+    
+    <!-- 🌌 ATMOSPHERIC AMBIENCE -->
+    <div style="position: absolute; top: -10%; left: -5%; width: 50%; height: 60%; background: radial-gradient(circle, rgba(79, 70, 229, 0.12), transparent 70%); filter: blur(80px);"></div>
+    <div style="position: absolute; bottom: 0%; right: 0%; width: 40%; height: 50%; background: radial-gradient(circle, rgba(236, 72, 153, 0.08), transparent 70%); filter: blur(80px);"></div>
+
+    <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 5;">
+        
+        <!-- 🏆 LEGENDS HEADER -->
+        <div class="reveal" style="text-align: center; margin-bottom: 8rem;">
+            <div style="display: inline-flex; align-items: center; gap: 12px; margin-bottom: 2rem; padding: 12px 30px; border-radius: 50px; background: rgba(255, 215, 0, 0.05); border: 1.5px solid rgba(255, 215, 0, 0.2);">
+                <i class="fas fa-crown" style="color: #ffd700; font-size: 1.2rem;"></i>
+                <span style="font-size: 0.9rem; font-weight: 950; text-transform: uppercase; letter-spacing: 4px; color: #ffd700;">{% trans "The Sanctuary of Excellence" %}</span>
+            </div>
+            <h1 style="font-size: 5.5rem; font-weight: 950; margin-bottom: 1.5rem; letter-spacing: -4px; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">The Wall of Legends</h1>
+            <p style="color: #64748b; font-weight: 700; font-size: 1.35rem; max-width: 800px; margin: 0 auto; line-height: 1.6;">{% trans "A hall dedicated to the most prestigious results in the ecosystem. Only perfection is etched here." %}</p>
+        </div>
+
+        <!-- 🖼️ THE GALLERY OF MASTERS -->
+        {% if legends %}
+            <div class="legend-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 4rem;">
+                {% for s in legends %}
+                    <article class="legend-node reveal" style="position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); border: 1.5px solid rgba(255,255,255,0.05); overflow: hidden; transition: all 0.7s cubic-bezier(0.15, 0.85, 0.35, 1.2); cursor: pointer; box-shadow: 0 40px 100px rgba(0,0,0,0.4);">
+                        
+                        <!-- Premium Preview Area -->
+                        <div class="node-preview" style="position: relative; height: 320px; overflow: hidden;">
+                            {% if s.image %}
+                                <img src="{{ s.image.url }}" alt="{{ s.title }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s, filter 0.5s;">
+                            {% else %}
+                                <div style="width: 100%; height: 100%; background: #1e293b; display: flex; align-items: center; justify-content: center; font-size: 4rem; color: #4f46e5;"><i class="fas fa-gem"></i></div>
+                            {% endif %}
+                            
+                            <!-- Master Badge -->
+                            <div style="position: absolute; top: 25px; left: 25px; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check-circle" style="color: #4f46e5;"></i>
+                                <span style="color: white; font-size: 0.75rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">{% trans "Legend Grade" %}</span>
+                            </div>
+
+                            <!-- Rating Seal -->
+                            <div style="position: absolute; top: 25px; right: 25px; background: #ffd700; color: #000; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 950; font-size: 1.2rem; box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);">
+                                5.0
+                            </div>
+                        </div>
+
+                        <!-- Info Reveal -->
+                        <div class="node-info" style="padding: 3rem; background: linear-gradient(to top, rgba(10,10,11,1), rgba(10,10,11,0.8));">
+                            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                                {% if s.provider.profile_picture %}
+                                    <img src="{{ s.provider.profile_picture.url }}" alt="" style="width: 45px; height: 45px; border-radius: 14px; border: 1.5px solid rgba(79, 70, 229, 0.4); box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);">
+                                {% else %}
+                                    <div style="width: 45px; height: 45px; border-radius: 14px; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 950;">{{ s.provider.user.username|first|upper }}</div>
+                                {% endif %}
+                                <div>
+                                    <h4 style="color: white; font-size: 1.2rem; font-weight: 950; margin: 0; letter-spacing: -0.5px;">{{ s.provider.user.username }}</h4>
+                                    <span style="color: #64748b; font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">{% trans "Sovereign Specialist" %}</span>
+                                </div>
+                            </div>
+
+                            <h2 style="color: white; font-size: 1.7rem; font-weight: 950; margin-bottom: 1rem; line-height: 1.3; letter-spacing: -1px;">{{ s.title }}</h2>
+                            <p style="color: #94a3b8; font-size: 1rem; font-weight: 600; line-height: 1.6; margin-bottom: 2rem;">{{ s.description|truncatechars:120 }}</p>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="color: #475569; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">Value Delivered</span>
+                                    <span style="color: #4f46e5; font-size: 1.4rem; font-weight: 950;">{{ s.price }} EGP</span>
+                                </div>
+                                <a href="{% url 'service_detail' s.id %}" class="btn-primary" style="padding: 12px 30px; border-radius: 18px; font-weight: 900; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1); color: white; text-decoration: none; transition: 0.4s;">{% trans "Enter Domain" %} →</a>
+                            </div>
+                        </div>
+
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- EMPTY HALL -->
+            <div class="reveal" style="text-align: center; padding: 10rem 4rem; opacity: 0.5;">
+                <div style="font-size: 6rem; color: #1e293b; margin-bottom: 2rem;"><i class="fas fa-ghost"></i></div>
+                <h3 style="color: white; font-size: 2rem; font-weight: 950;">{% trans "The Hall is Silent..." %}</h3>
+                <p style="color: #64748b; font-weight: 700; margin-top: 1rem;">{% trans "No legends have been etched yet. Be the first to transcend." %}</p>
+            </div>
+        {% endif %}
+
+        <!-- 🏷️ BUILDER CREDIT -->
+        <div style="margin-top: 12rem; text-align: center; color: #334155; font-weight: 900; letter-spacing: 5px; font-size: 0.8rem; text-transform: uppercase;">
+            Sanctuary Managed by <span style="color: #94a3b8;">Ahmed Torki</span>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.legend-node:hover { transform: scale(1.05) translateY(-20px); border-color: rgba(255, 215, 0, 0.4); box-shadow: 0 60px 150px rgba(0,0,0,0.8); }
+.legend-node:hover img { transform: scale(1.15) rotate(1deg); filter: contrast(1.1); }
+.legend-node:hover .node-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(79, 70, 229, 0.4), transparent); pointer-events: none; }
+.btn-primary:hover { background: #4f46e5 !important; border-color: #4f46e5 !important; transform: translateX(5px); box-shadow: 0 0 30px rgba(79, 70, 229, 0.4); }
+</style>
+{% endblock %}

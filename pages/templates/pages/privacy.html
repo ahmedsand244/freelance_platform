@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Privacy Charter" %} — Freelance Yard{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 6rem; padding-bottom: 8rem; max-width: 1000px;">
+    
+    <div class="premium-about-card reveal" style="padding: 5rem; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); box-shadow: 0 40px 100px rgba(0,0,0,0.06);">
+        
+        <div style="text-align: center; margin-bottom: 5rem; padding-bottom: 3rem; border-bottom: 1.5px solid var(--border-color);">
+            <div style="width: 80px; height: 80px; border-radius: 25px; background: rgba(79, 70, 229, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--primary); font-size: 2.2rem;">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <h1 style="font-size: 3.5rem; font-weight: 950; margin-bottom: 1rem; letter-spacing: -1.5px;">{% trans "Privacy Charter" %}</h1>
+            <p style="color: var(--gray-400); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem;">{% trans "Version 4.0 — Last Updated" %}: April 2026</p>
+        </div>
+        
+        <div class="legal-content-flow" style="display: flex; flex-direction: column; gap: 4rem;">
+            
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">01.</span> {% trans "Data Collection" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "We collect information you provide directly to us, such as when you create or modify your account, request on-demand services, contact customer support, or otherwise communicate with us." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">02.</span> {% trans "Cookies & Tracking" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "We use cookies and similar technologies (like Google Analytics) to track platform activity, monitor conversion funnels, and improve user experiences." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">03.</span> {% trans "Data Security" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "Your financial data and passwords are encrypted. Passwords are hashed using PBKDF2 algorithms, and raw payment details are never stored directly on our servers but handled securely by Paymob." %}</p>
+            </section>
+
+            <section>
+                <h3 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; color: var(--gray-900);">
+                    <span style="color: var(--primary); opacity: 0.3;">04.</span> {% trans "Data Sharing" %}
+                </h3>
+                <p style="font-size: 1.15rem; color: var(--gray-500); line-height: 1.8; font-weight: 600;">{% trans "We do not sell your personal data. Data is only shared with third-party vendors strictly necessary for the operation of the platform (e.g. Email providers and Payment gateways)." %}</p>
+            </section>
+
+        </div>
+
+        <div style="margin-top: 6rem; padding: 3rem; border-radius: 25px; background: rgba(79, 70, 229, 0.03); border: 1.5px solid var(--border-color); text-align: center;">
+            <p style="font-weight: 800; color: var(--gray-500); margin-bottom: 1.5rem;">{% trans "Any questions regarding our privacy standard?" %}</p>
+            <a href="{% url 'contact' %}" class="btn-primary" style="padding: 1.2rem 2.5rem; border-radius: 15px; font-weight: 900; text-decoration: none; display: inline-block;">{% trans "Contact Legal Hub" %}</a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+html.dark-mode .premium-about-card { background: rgba(25, 25, 25, 0.8) !important; }
+html.dark-mode h1, html.dark-mode h3 { color: #ffffff !important; }
+</style>
+{% endblock %}

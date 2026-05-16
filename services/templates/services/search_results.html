@@ -1,72 +1,208 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{% trans "Search Results" %}{% endblock %}
+{% block title %}{% trans "Search Discovery" %}{% if query %} — {{ query }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="search-results-container">
+<div class="search-hub-container" style="min-height: 100vh; background: #f8fafc; overflow: hidden;">
 
-  <h2 class="search-heading">
-    {% blocktrans %}Search results for "{{ query }}":{% endblocktrans %}
-  </h2>
+    <!-- 🌌 ELITE SEARCH HEADER -->
+    <div class="search-nebula-header" style="position: relative; padding: 6rem 2rem 10rem; background: #1e293b; overflow: hidden; text-align: center;">
+        <div class="mesh-spirit" style="position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(79, 70, 229, 0.4), transparent 50%), radial-gradient(circle at 80% 70%, rgba(219, 39, 119, 0.3), transparent 50%); animation: meshMove 20s infinite alternate;"></div>
+        
+        <div class="reveal" style="position: relative; z-index: 5;">
+            <h1 style="font-size: 3.5rem; font-weight: 950; color: white; letter-spacing: -2px; margin-bottom: 1.5rem;">
+                {% if query %}
+                    {% blocktrans %}Discovery: "<span style="color: #a5b4fc;">{{ query }}</span>"{% endblocktrans %}
+                {% else %}
+                    {% trans "Explore All Services" %}
+                {% endif %}
+            </h1>
+            
+            <!-- Dynamic Search Bar -->
+            <form method="get" action="{% url 'search_services' %}" style="max-width: 700px; margin: 0 auto;">
+                <div class="premium-search-box" style="position: relative; display: flex; align-items: center; background: rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 25px; padding: 10px; border: 1.5px solid rgba(255,255,255,0.15); box-shadow: 0 25px 50px rgba(0,0,0,0.2);">
+                    <i class="fas fa-search" style="margin-left: 20px; color: rgba(255,255,255,0.5); font-size: 1.2rem;"></i>
+                    <input type="text" name="q" value="{{ query }}" placeholder="{% trans 'Search projects, skills, or experts...' %}" 
+                           style="flex: 1; background: transparent; border: none; padding: 15px; color: white; font-size: 1.1rem; font-weight: 600; outline: none;" autofocus>
+                    <button type="submit" class="btn-primary" style="padding: 15px 40px; border-radius: 18px; font-weight: 900; background: #4f46e5; border: none; color: white; cursor: pointer;">{% trans "Search" %}</button>
+                </div>
+            </form>
+            
+            <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 15px;">
+                <span style="background: rgba(255,255,255,0.1); color: #e2e8f0; padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.05);">
+                    <i class="fab fa-ethereum" style="margin-right: 5px;"></i> {{ result_count }} {% trans "Opportunities Found" %}
+                </span>
+            </div>
+        </div>
+    </div>
 
-  <!-- 🛠️ Services Section -->
-  <div class="result-section">
-    <h3 class="section-title">🛠️ {% trans "Services" %}</h3>
-    {% if service_results %}
-      <ul class="result-list blue">
-        {% for s in service_results %}
-          <li><a href="{% url 'service_detail' s.id %}">{{ s.title }}</a></li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="no-results">{% trans "No matching services found." %}</p>
-    {% endif %}
-  </div>
+    <!-- 🛠️ DISCOVERY LAYOUT -->
+    <div class="discovery-layout" style="max-width: 1400px; margin: -5rem auto 5rem; padding: 0 2rem; position: relative; z-index: 10; display: grid; grid-template-columns: 320px 1fr; gap: 3rem;">
+        
+        <!-- 🧭 GLASS FILTER CONTROL CENTER -->
+        <aside class="reveal" style="position: sticky; top: 100px; height: fit-content;">
+            <div class="glass-control-panel" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(30px); border-radius: 35px; border: 1.5px solid rgba(255,255,255,0.5); padding: 2.5rem; box-shadow: 0 40px 100px rgba(0,0,0,0.05);">
+                <form method="get" action="{% url 'search_services' %}" id="eliteFilters">
+                    <input type="hidden" name="q" value="{{ query }}">
+                    
+                    <h3 style="font-size: 1.4rem; font-weight: 950; margin-bottom: 2rem; color: #1e293b; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-sliders-h" style="color: #4f46e5;"></i> {% trans "Refine" %}
+                    </h3>
 
-  <!-- 🧑‍💼 Providers Section -->
-  <div class="result-section">
-    <h3 class="section-title">🧑‍💼 {% trans "Service Providers" %}</h3>
-    {% if provider_results %}
-      <ul class="result-list gray">
-        {% for p in provider_results %}
-          <li>{{ p.user.get_full_name|default:p.user.username }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="no-results">{% trans "No matching providers found." %}</p>
-    {% endif %}
-  </div>
+                    <!-- Categories -->
+                    <div class="filter-section" style="margin-bottom: 2.5rem;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748b; margin-bottom: 1rem;">{% trans "Expertise" %}</label>
+                        <select name="category" onchange="this.form.submit()" style="width: 100%; padding: 15px; border-radius: 15px; border: 1.5px solid #e2e8f0; background: white; font-weight: 800; color: #1e293b; cursor: pointer; outline: none; transition: all 0.3s;">
+                            <option value="">{% trans "All Spheres" %}</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-  <!-- 🎯 Organizers Section (uncomment if needed) -->
-  {# 
-  <div class="result-section">
-    <h3 class="section-title">🎯 {% trans "Organizers" %}</h3>
-    {% if organizer_results %}
-      <ul class="result-list yellow">
-        {% for o in organizer_results %}
-          <li><a href="{% url 'organizer_detail' o.id %}">{{ o.user.username }}</a></li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="no-results">{% trans "No matching organizers found." %}</p>
-    {% endif %}
-  </div>
-  #}
+                    <!-- Price Range -->
+                    <div class="filter-section" style="margin-bottom: 2.5rem;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748b; margin-bottom: 1rem;">{% trans "Budget Gauge" %} (EGP)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="number" name="min_price" value="{{ min_price }}" placeholder="{% trans 'Min' %}" style="padding: 12px; border-radius: 12px; border: 1.5px solid #e2e8f0; width: 100%; font-weight: 800; outline: none;">
+                            <input type="number" name="max_price" value="{{ max_price }}" placeholder="{% trans 'Max' %}" style="padding: 12px; border-radius: 12px; border: 1.5px solid #e2e8f0; width: 100%; font-weight: 800; outline: none;">
+                        </div>
+                    </div>
 
-  <!-- 📅 Events Section -->
-  <div class="result-section">
-    <h3 class="section-title">📅 {% trans "Events" %}</h3>
-    {% if event_results %}
-      <ul class="result-list green">
-        {% for e in event_results %}
-          <li><a href="{% url 'events' %}" class="text-green-700 hover:underline">{{ e.title }}</a></li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="no-results">{% trans "No matching events found." %}</p>
-    {% endif %}
-  </div>
+                    <!-- Sort -->
+                    <div class="filter-section" style="margin-bottom: 2.5rem;">
+                        <label style="display: block; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #64748b; margin-bottom: 1.5rem;">{% trans "Sort Sequence" %}</label>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label class="sort-chip">
+                                <input type="radio" name="sort" value="newest" {% if sort_by == 'newest' or not sort_by %}checked{% endif %} onchange="this.form.submit()">
+                                <span><i class="fas fa-clock"></i> {% trans "Latest First" %}</span>
+                            </label>
+                            <label class="sort-chip">
+                                <input type="radio" name="sort" value="price_asc" {% if sort_by == 'price_asc' %}checked{% endif %} onchange="this.form.submit()">
+                                <span><i class="fas fa-arrow-up"></i> {% trans "Economical" %}</span>
+                            </label>
+                            <label class="sort-chip">
+                                <input type="radio" name="sort" value="price_desc" {% if sort_by == 'price_desc' %}checked{% endif %} onchange="this.form.submit()">
+                                <span><i class="fas fa-arrow-down"></i> {% trans "Premium Budget" %}</span>
+                            </label>
+                        </div>
+                    </div>
 
+                    <button type="submit" class="btn-primary" style="width: 100%; padding: 15px; border-radius: 18px; font-weight: 900; background: #0f172a; border: none; color: white; cursor: pointer; transition: all 0.3s;">{% trans "Apply Refinement" %}</button>
+                    
+                    {% if query or selected_category or min_price or max_price %}
+                        <a href="{% url 'search_services' %}" style="display: block; text-align: center; margin-top: 1.5rem; font-size: 0.85rem; font-weight: 900; color: #ef4444; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">{% trans "Reset Filters" %}</a>
+                    {% endif %}
+                </form>
+            </div>
+        </aside>
+
+        <!-- 💎 DISCOVERY RESULTS HUB -->
+        <main>
+            {% if service_results %}
+                <div class="elite-results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+                    {% for s in service_results %}
+                        <article class="service-card-elite reveal" style="background: white; border-radius: 35px; border: 1.5px solid #f1f5f9; overflow: hidden; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+                            <div class="card-visual" style="position: relative; height: 200px; overflow: hidden;">
+                                {% if s.image %}
+                                    <img src="{{ s.image.url }}" alt="{{ s.title }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s;">
+                                {% else %}
+                                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #cbd5e1;"><i class="fas fa-briefcase"></i></div>
+                                {% endif %}
+                                <div class="price-pill" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: white; padding: 8px 18px; border-radius: 50px; font-weight: 950; font-size: 0.95rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                                    {{ s.price }} {% trans "EGP" %}
+                                </div>
+                            </div>
+                            
+                            <div class="card-content" style="padding: 2rem;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                                    {% if s.provider.profile_picture %}
+                                        <img src="{{ s.provider.profile_picture.url }}" alt="" style="width: 32px; height: 32px; border-radius: 10px; object-fit: cover; border: 1.5px solid #e2e8f0;">
+                                    {% else %}
+                                        <div style="width: 32px; height: 32px; border-radius: 10px; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 950;">{{ s.provider.user.username|first|upper }}</div>
+                                    {% endif %}
+                                    <span style="font-size: 0.85rem; font-weight: 800; color: #64748b;">{{ s.provider.user.username }}</span>
+                                </div>
+                                <h3 style="font-size: 1.3rem; font-weight: 950; margin-bottom: 0.5rem; letter-spacing: -0.5px; line-height: 1.3;">
+                                    <a href="{% url 'service_detail' s.id %}" style="text-decoration: none; color: #1e293b; transition: color 0.3s;">{{ s.title }}</a>
+                                </h3>
+                                <p style="font-size: 0.9rem; color: #64748b; font-weight: 600; line-height: 1.6; margin-bottom: 1.5rem;">{{ s.description|truncatechars:100 }}</p>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-star" style="color: #f59e0b; font-size: 0.85rem;"></i>
+                                        <span style="font-weight: 950; font-size: 0.9rem; color: #1e293b;">{{ s.average_rating|default:"5.0" }}</span>
+                                    </div>
+                                    <a href="{% url 'service_detail' s.id %}" style="font-weight: 900; color: #4f46e5; text-decoration: none; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">{% trans "Explore" %} →</a>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-nebula reveal" style="text-align: center; padding: 10rem 4rem; background: white; border-radius: 40px; border: 2.5px dashed #e2e8f0;">
+                    <div style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.2;"><i class="fas fa-search-minus"></i></div>
+                    <h2 style="font-size: 2.2rem; font-weight: 950; color: #1e293b; margin-bottom: 1rem;">{% trans "The Void: No Results" %}</h2>
+                    <p style="color: #64748b; font-weight: 700; font-size: 1.1rem; max-width: 400px; margin: 0 auto 2.5rem;">{% trans "Atmosphere clear, but no projects matched your frequency. Try different refinement parameters." %}</p>
+                    <a href="{% url 'search_services' %}" class="btn-primary" style="padding: 1.2rem 3.5rem; border-radius: 20px; font-weight: 950; background: #4f46e5; color: white; text-decoration: none;">{% trans "Reset Discovery" %}</a>
+                </div>
+            {% endif %}
+
+            <!-- Providers Matching -->
+            {% if provider_results %}
+                <div class="search-section-header reveal" style="margin: 6rem 0 3rem; display: flex; align-items: center; gap: 20px;">
+                    <h2 style="font-size: 2rem; font-weight: 950; color: #1e293b; letter-spacing: -1px;">{% trans "Matched Freelancers" %}</h2>
+                    <div style="flex: 1; height: 2px; background: linear-gradient(to right, #e2e8f0, transparent);"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                    {% for p in provider_results %}
+                        <div class="provider-premium-card reveal" style="background: white; border-radius: 30px; border: 1.5px solid #f1f5f9; padding: 2rem; display: flex; align-items: center; gap: 20px; transition: all 0.4s;">
+                            {% if p.profile_picture %}
+                                <img src="{{ p.profile_picture.url }}" alt="" style="width: 70px; height: 70px; border-radius: 22px; object-fit: cover;">
+                            {% else %}
+                                <div style="width: 70px; height: 70px; border-radius: 22px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 950; color: #94a3b8;">{{ p.user.username|first|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <h4 style="font-size: 1.1rem; font-weight: 950; margin-bottom: 5px; color: #1e293b;">{{ p.user.username }}</h4>
+                                {% if p.bio %}
+                                    <p style="font-size: 0.85rem; font-weight: 700; color: #64748b; margin: 0;">{{ p.bio|truncatechars:40 }}</p>
+                                {% else %}
+                                    <p style="font-size: 0.85rem; font-weight: 700; color: #64748b; margin: 0;">{% trans "Elite Specialist" %}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </main>
+    </div>
 </div>
+
+<style>
+@keyframes meshMove { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.2) rotate(5deg); } }
+.sort-chip { position: relative; cursor: pointer; }
+.sort-chip input { display: none; }
+.sort-chip span { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 12px; background: #f8fafc; color: #64748b; font-weight: 800; font-size: 0.85rem; border: 1.5px solid transparent; transition: all 0.3s; }
+.sort-chip input:checked + span { background: rgba(79, 70, 229, 0.1); color: #4f46e5; border-color: #4f46e5; }
+.service-card-elite:hover { transform: translateY(-15px); border-color: #a5b4fc; box-shadow: 0 40px 100px rgba(79, 70, 229, 0.1); }
+.service-card-elite:hover img { transform: scale(1.1); }
+.provider-premium-card:hover { transform: scale(1.05); border-color: #a5b4fc; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
+
+/* DARK MODE ADAPTATION */
+html.dark-mode .search-hub-container { background: #010101 !important; }
+html.dark-mode .glass-control-panel, html.dark-mode .service-card-elite, html.dark-mode .provider-premium-card, html.dark-mode .empty-nebula { background: rgba(15, 23, 42, 0.8) !important; border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .glass-control-panel h3, html.dark-mode .glass-control-panel select, html.dark-mode .glass-control-panel input, html.dark-mode .service-card-elite h3 a, html.dark-mode .provider-premium-card h4, html.dark-mode .search-section-header h2, html.dark-mode .empty-nebula h2 { color: white !important; }
+html.dark-mode .glass-control-panel select, 
+html.dark-mode .glass-control-panel input { 
+    background: rgba(30, 41, 59, 0.8) !important; 
+    border-color: rgba(255,255,255,0.1) !important; 
+    color: white !important; 
+}
+html.dark-mode .glass-control-panel select option {
+    background: #1e293b !important;
+    color: white !important;
+}
+html.dark-mode .price-pill { background: rgba(255,255,255,0.1) !important; }
+</style>
 {% endblock %}

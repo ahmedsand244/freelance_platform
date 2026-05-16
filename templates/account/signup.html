@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load i18n static socialaccount %}
+
+{% block title %}{% trans "Join the Yard" %} — Freelance Yard{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 5rem; padding-bottom: 8rem; max-width: 1100px;">
+  
+  <div class="row reveal" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;">
+    
+    <!-- Left Col: Value Prop -->
+    <div style="padding-right: 2rem;">
+      <span class="section-badge" style="margin-bottom: 1.5rem;">🚀 {% trans "New Era" %}</span>
+      <h1 class="section-heading" style="font-size: 3.5rem; margin-bottom: 1.5rem; line-height: 1.1;">{% trans "Start your journey in the Yard." %}</h1>
+      <p class="section-subtext" style="font-size: 1.25rem; margin-bottom: 3rem;">{% trans "Join a world-class community of creators, engineers, and organizers. Secure, professional, and built for growth." %}</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div style="display: flex; gap: 1.2rem; align-items: start;">
+          <div style="width: 50px; height: 50px; border-radius: 15px; background: rgba(79, 70, 229, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.2rem;">
+            <i class="fas fa-shield-check"></i>
+          </div>
+          <div>
+            <h4 style="font-weight: 800; margin-bottom: 0.3rem;">{% trans "Secure Escrow" %}</h4>
+            <p style="font-size: 0.9rem; color: var(--gray-500);">{% trans "Your funds and deliveries are protected by our vault technology." %}</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 1.2rem; align-items: start;">
+          <div style="width: 50px; height: 50px; border-radius: 15px; background: rgba(79, 70, 229, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.2rem;">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <div>
+            <h4 style="font-weight: 800; margin-bottom: 0.3rem;">{% trans "Fast Payouts" %}</h4>
+            <p style="font-size: 0.9rem; color: var(--gray-500);">{% trans "Receive your earnings directly to your bank or wallet in record time." %}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Col: Signup Card -->
+    <div class="premium-about-card reveal" style="padding: 4rem; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); box-shadow: 0 40px 100px rgba(0,0,0,0.06);">
+      
+      <div style="text-align: center; margin-bottom: 3rem;">
+        <h3 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem;">{% trans "Membership Application" %}</h3>
+        <p style="color: var(--gray-500); font-weight: 600;">{% trans "Already a member?" %} <a href="{% url 'account_login' %}" style="color: var(--primary); font-weight: 800; text-decoration: none;">{% trans "Login Here" %}</a></p>
+      </div>
+
+      <!-- Social Signup -->
+      <div style="margin-bottom: 2.5rem;">
+        <a href="{% provider_login_url 'google' process='connect' %}" style="display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.2rem; border-radius: 18px; border: 1.5px solid var(--border-color); background: var(--card-bg); text-decoration: none; color: var(--gray-900); font-weight: 700; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='rgba(79, 70, 229, 0.03)'" onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--card-bg)'">
+            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" alt="Google" style="width: 24px; height: 24px;">
+            {% trans "Register with Google" %}
+        </a>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; opacity: 0.4;">
+        <div style="flex: 1; height: 1px; background: var(--gray-400);"></div>
+        <span style="font-size: 0.8rem; font-weight: 800;">{% trans "Or secure enrollment" %}</span>
+        <div style="flex: 1; height: 1px; background: var(--gray-400);"></div>
+      </div>
+
+      <form method="post" action="{% url 'account_signup' %}" class="premium-form">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 2rem; text-align: left;">
+          
+          {% for field in form %}
+          <div class="form-group">
+            <label for="{{ field.id_for_label }}" class="form-label" style="font-weight: 800; color: var(--gray-900); display: block; margin-bottom: 0.8rem; font-size: 0.9rem;">{{ field.label }}</label>
+            <div style="position: relative;">
+              <i class="far {% if 'user' in field.name.lower or 'name' in field.name.lower %}fa-user{% elif 'email' in field.name.lower %}fa-envelope{% elif 'pass' in field.name.lower %}fa-key{% else %}fa-edit{% endif %}" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.1rem; opacity: 0.6;"></i>
+              <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-input" style="padding-left: 3.2rem; border-radius: 15px; border-width: 1.5px; background: var(--card-bg);" required>
+            </div>
+            {% if field.errors %}
+              <div style="color: #e74c3c; font-size: 0.8rem; margin-top: 0.5rem; font-weight: 700;">{{ field.errors }}</div>
+            {% endif %}
+            {% if field.help_text %}
+              <p style="font-size: 0.75rem; color: var(--gray-400); margin-top: 0.4rem;">{{ field.help_text|safe }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <!-- Submit -->
+          <div style="margin-top: 1rem;">
+            <button type="submit" class="btn-primary buy-btn-glow" style="width: 100%; border-radius: 20px; padding: 1.6rem; font-size: 1.3rem; font-weight: 900; border: none; box-shadow: 0 15px 35px rgba(79, 70, 229, 0.3);">
+              <i class="fas fa-rocket" style="margin-right: 0.8rem;"></i> {% trans "Apply for Membership" %}
+            </button>
+          </div>
+
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+html.dark-mode .premium-about-card {
+  background: rgba(25, 25, 25, 0.8) !important;
+}
+html.dark-mode .form-label, 
+html.dark-mode h1, 
+html.dark-mode h3, 
+html.dark-mode h4 {
+  color: #ffffff !important;
+}
+html.dark-mode .section-heading {
+  background: none;
+  -webkit-text-fill-color: #ffffff;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% load static i18n %}
+<article class="service-card reveal">
+  <div class="service-card-img-wrap">
+    {% if service.image %}
+      <img src="{{ service.image.url }}" alt="{{ service.title }}" class="service-card-img" loading="lazy">
+    {% else %}
+      <div class="service-card-img-placeholder"><i class="fas fa-briefcase"></i></div>
+    {% endif %}
+    {% if user.is_authenticated %}
+      <a href="{% url 'toggle_wishlist' service.id %}" class="wishlist-toggle-btn" title="{% trans 'Add to Wishlist' %}">
+        <i class="fas fa-heart"></i>
+      </a>
+    {% endif %}
+  </div>
+  
+  <div class="service-card-body">
+    {% if service.provider %}
+      <div class="service-card-provider">
+        {% if service.provider.profile_picture %}
+          <img src="{{ service.provider.profile_picture.url }}" alt="" class="provider-mini-avatar">
+        {% else %}
+          <div class="provider-mini-avatar-ph">{{ service.provider.user.username|first|upper }}</div>
+        {% endif %}
+        <span>{{ service.provider.user.username }}</span>
+      </div>
+    {% endif %}
+    
+    <h3 class="service-card-title">
+      <a href="{% url 'service_detail' service.id %}">{% trans service.title %}</a>
+    </h3>
+    
+    {% trans service.description as trans_desc %}
+    <p class="service-card-desc">{{ trans_desc|truncatechars:80 }}</p>
+    
+    <div class="service-card-meta">
+      {% if service.average_rating > 0 %}
+        <div class="service-rating">
+          <i class="fas fa-star star-icon"></i>
+          <span class="rating-score">{{ service.average_rating }}</span>
+          <span class="review-count">({{ service.review_count }})</span>
+        </div>
+      {% endif %}
+      {% if service.delivery_days %}
+        <span class="delivery-badge" title="{% trans 'Delivery Time' %}">
+          <i class="fas fa-clock"></i> {{ service.delivery_days }} {% trans "Days" %}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="service-card-footer">
+    <div class="service-price">
+      <span class="price-label">{% trans "Starting from" %}</span>
+      <span class="price-amount">{{ service.price|floatformat:0 }} {% trans "EGP" %}</span>
+    </div>
+    <a href="{% url 'service_detail' service.id %}" class="service-card-btn">
+      {% trans "Book Now" %} <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+</article>

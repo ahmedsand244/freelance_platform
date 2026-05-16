@@ -1,80 +1,337 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
+{% block title %}{% trans "Command Center" %} — Myths Solutions Admin{% endblock %}
+
 {% block content %}
-<div class="admin-dashboard">
+<div class="container" style="padding-top: 5rem; padding-bottom: 8rem; max-width: 1400px;">
 
-  <h2 class="dashboard-title">🛠 {% trans "Admin Dashboard" %}</h2>
-
-  <!-- Filters Section -->
-  <div class="filters {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <form method="get" class="filter-form">
-      <label for="status">{% trans "Status:" %}</label>
-      <select name="status" id="status" onchange="this.form.submit()">
-        <option value="">{% trans "All" %}</option>
-        {% for key, value in status_choices %}
-          <option value="{{ key }}" {% if request.GET.status == key %}selected{% endif %}>{{ value }}</option>
+  <!-- Hero Command Header -->
+  <div class="reveal" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem;">
+    <div>
+      <span class="section-badge" style="margin-bottom: 1.5rem;">🛠 {% trans "System Operations" %}</span>
+      <h1 class="section-heading" style="font-size: 3.5rem; margin-bottom: 0.5rem;">{% trans "Global Command Center" %}</h1>
+      <p class="section-subtext" style="font-size: 1.2rem;">{% trans "Overseeing the Myths ecosystem and financial pulse in real-time." %}</p>
+    </div>
+    
+    <!-- Quick Stats Summary -->
+    <div style="display: flex; gap: 2rem; padding: 1.5rem; border-radius: 25px; background: rgba(79, 70, 229, 0.05); border: 1.5px solid var(--border-color);">
+        {% for item in status_counts %}
+        <div style="text-align: center;">
+            <div style="font-weight: 950; font-size: 1.3rem; color: var(--primary);">{{ item.count }}</div>
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px;">{{ item.status }}</div>
+        </div>
+        {% if not forloop.last %}<div style="width: 1.5px; background: var(--border-color); height: 35px;"></div>{% endif %}
         {% endfor %}
-      </select>
-    </form>
+    </div>
+  </div>
 
-    <form method="get" class="filter-form ">
-      <label for="user">{% trans "User:" %}</label>
-      <select name="user" id="user" onchange="this.form.submit()">
-        <option value="">{% trans "All Users" %}</option>
-        {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_user == user.id %}selected{% endif %}>{{ user.username }}</option>
-        {% endfor %}
-      </select>
+  <!-- Strategic Financial Tiles -->
+  <div class="row reveal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; margin-bottom: 4rem;">
+    
+    <!-- Platform Revenue -->
+    <div class="premium-about-card" style="padding: 2.5rem; border-radius: 35px; background: linear-gradient(135deg, var(--primary), #4338ca); color: white; border: none; box-shadow: 0 30px 60px rgba(79, 70, 229, 0.25);">
+        <h4 style="font-weight: 700; opacity: 0.8; margin-bottom: 0.5rem;">{% trans "Total Revenue" %}</h4>
+        <div style="font-size: 2.8rem; font-weight: 950;">{{ total_revenue }} <span style="font-size: 1.2rem; opacity: 0.7;">EGP</span></div>
+    </div>
+
+    <!-- Pending Settlements -->
+    <div class="premium-about-card" style="padding: 2.5rem; border-radius: 35px; border: 1.5px solid var(--border-color); background: var(--card-bg);">
+        <h4 style="font-weight: 800; color: var(--gray-500); margin-bottom: 0.5rem;">{% trans "Sellers Pending" %}</h4>
+        <div style="font-size: 2.5rem; font-weight: 950; color: var(--gray-900);">{{ total_pending }} <span style="font-size: 1.1rem; color: var(--gray-400);">EGP</span></div>
+    </div>
+
+    <!-- Available Cash -->
+    <div class="premium-about-card" style="padding: 2.5rem; border-radius: 35px; border: 1.5px solid var(--border-color); background: var(--card-bg);">
+        <h4 style="font-weight: 800; color: var(--gray-500); margin-bottom: 0.5rem;">{% trans "Available Balance" %}</h4>
+        <div style="font-size: 2.5rem; font-weight: 950; color: var(--gray-900);">{{ total_available }} <span style="font-size: 1.1rem; color: var(--gray-400);">EGP</span></div>
+    </div>
+  </div>
+
+  <!-- Discovery & Filter Hub -->
+  <div class="reveal" style="padding: 2rem; border-radius: 30px; background: rgba(79, 70, 229, 0.03); border: 1.5px solid var(--border-color); margin-bottom: 4rem; display: flex; gap: 2rem; align-items: center;">
+    <h3 style="font-weight: 950; font-size: 1.1rem; margin: 0;">🌍 {% trans "Filters" %}</h3>
+    <form method="get" style="display: flex; gap: 1.5rem; flex: 1;">
+        <div style="flex: 1;">
+            <select name="status" onchange="this.form.submit()" class="admin-select">
+                <option value="">{% trans "All Status Flows" %}</option>
+                {% for key, value in status_choices %}
+                  <option value="{{ key }}" {% if request.GET.status == key %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="flex: 1;">
+            <select name="user" onchange="this.form.submit()" class="admin-select">
+                <option value="">{% trans "Global User Base" %}</option>
+                {% for user in users %}
+                  <option value="{{ user.id }}" {% if selected_user == user.id %}selected{% endif %}>{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </form>
   </div>
 
-  <!-- Summary Section -->
-  <div class="summary-section {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <h3 class="section-heading">📊 {% trans "Order Summary" %}</h3>
-    <ul class="simple-list">
-      {% for item in status_counts %}
-        <li><strong>{{ item.status }}:</strong> {{ item.count }}</li>
-      {% endfor %}
-    </ul>
+  <!-- 🛡️ Services Approval Pipeline -->
+  <div class="premium-about-card reveal" style="padding: 0; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); margin-bottom: 4rem; overflow: hidden;">
+    <div style="padding: 3rem; border-bottom: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.03);">
+      <h3 style="font-size: 1.8rem; font-weight: 950; margin: 0;">🛡️ {% trans "Services Approval Pipeline" %}</h3>
+      <span style="padding: 0.8rem 1.5rem; border-radius: 15px; background: rgba(16, 185, 129, 0.1); color: #059669; font-weight: 900; font-size: 0.9rem;">
+        {{ pending_services.count }} {% trans "New Submissions" %}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      {% if pending_services %}
+      <table class="dashboard-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="text-align: left; background: rgba(16, 185, 129, 0.02);">
+            <th class="admin-th">{% trans "Service" %}</th>
+            <th class="admin-th">{% trans "Provider" %}</th>
+            <th class="admin-th">{% trans "Price" %}</th>
+            <th class="admin-th">{% trans "Command" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for svc in pending_services %}
+          <tr class="admin-tr">
+            <td style="padding: 2.5rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    {% if svc.image %}
+                    <img src="{{ svc.image.url }}" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover;">
+                    {% else %}
+                    <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; color: var(--gray-400);">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div style="font-weight: 900; color: var(--gray-900); font-size: 1.1rem;">{{ svc.title }}</div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">{{ svc.category.name }}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="padding: 2.5rem; font-weight: 850; color: var(--gray-700);">{{ svc.provider.user.username }}</td>
+            <td style="padding: 2.5rem; font-weight: 950; font-size: 1.2rem;">{{ svc.price }} <span style="font-size: 0.8rem; color: var(--gray-400);">EGP</span></td>
+            <td style="padding: 2.5rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <form method="post" action="{% url 'admin_approve_service' svc.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="admin-btn admin-btn-approve">
+                            <i class="fas fa-check-circle"></i> {% trans "Approve" %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'admin_approve_service' svc.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="delete" class="admin-btn admin-btn-reject">
+                            {% trans "Delete" %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div style="padding: 6rem; text-align: center; color: var(--gray-400);">
+            <i class="fas fa-check-double" style="font-size: 4rem; opacity: 0.3; margin-bottom: 1.5rem;"></i>
+            <h4 style="font-weight: 800;">{% trans "Review Queue is Clear" %}</h4>
+        </div>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Orders Table -->
-  <div class="table-responsive {% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
-    <table class="dashboard-table">
-      <thead>
-        <tr>
-          <th>{% trans "Order #" %}</th>
-          <th>{% trans "Customer" %}</th>
-          <th>{% trans "Status" %}</th>
-          <th>{% trans "Update" %}</th>
-          <th>{% trans "Email" %}</th>
-          <th>{% trans "Details" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for order in orders %}
-          <tr>
-            <td>{{ order.id }}</td>
-            <td>{{ order.user.username }}</td>
-            <td>{{ order.get_status_display }}</td>
-            <td>
-              <form method="post" action="{% url 'update_order_status' order.id %}">
+  <!-- 📅 Event Approvals Pipeline -->
+  <div class="premium-about-card reveal" style="padding: 0; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); margin-bottom: 4rem; overflow: hidden;">
+    <div style="padding: 3rem; border-bottom: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(59, 130, 246, 0.03);">
+      <h3 style="font-size: 1.8rem; font-weight: 950; margin: 0;">📅 {% trans "Event Approvals Pipeline" %}</h3>
+      <span style="padding: 0.8rem 1.5rem; border-radius: 15px; background: rgba(59, 130, 246, 0.1); color: #2563eb; font-weight: 900; font-size: 0.9rem;">
+        {{ pending_event_requests.count }} {% trans "New Submissions" %}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      {% if pending_event_requests %}
+      <table class="dashboard-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="text-align: left; background: rgba(59, 130, 246, 0.02);">
+            <th class="admin-th">{% trans "Event" %}</th>
+            <th class="admin-th">{% trans "Organizer / Client" %}</th>
+            <th class="admin-th">{% trans "Proposed Date" %}</th>
+            <th class="admin-th">{% trans "Command" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event_req in pending_event_requests %}
+          <tr class="admin-tr">
+            <td style="padding: 2.5rem;">
+                <div style="font-weight: 900; color: var(--gray-900); font-size: 1.1rem;">{{ event_req.event_name }}</div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">{% trans "Submitted:" %} {{ event_req.submitted_at|date:"M d, Y" }}</div>
+            </td>
+            <td style="padding: 2.5rem;">
+                <div style="font-weight: 850; color: var(--gray-700);">{{ event_req.client_name }}</div>
+                <div style="font-size: 0.8rem; color: var(--gray-500);">{{ event_req.email }} | {{ event_req.phone }}</div>
+                {% if event_req.notes %}<div style="font-size: 0.8rem; color: var(--gray-500); margin-top: 0.5rem; font-style: italic;">"{{ event_req.notes|truncatechars:50 }}"</div>{% endif %}
+            </td>
+            <td style="padding: 2.5rem; font-weight: 950; font-size: 1.1rem; color: var(--gray-700);">{{ event_req.date|date:"F d, Y" }}</td>
+            <td style="padding: 2.5rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <form method="post" action="{% url 'admin_approve_event' event_req.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="approve" class="admin-btn admin-btn-approve" style="background: #2563eb;">
+                            <i class="fas fa-check-circle"></i> {% trans "Approve" %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'admin_approve_event' event_req.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="reject" class="admin-btn admin-btn-reject">
+                            {% trans "Reject" %}
+                        </button>
+                    </form>
+                </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div style="padding: 6rem; text-align: center; color: var(--gray-400);">
+            <i class="fas fa-calendar-check" style="font-size: 4rem; opacity: 0.3; margin-bottom: 1.5rem;"></i>
+            <h4 style="font-weight: 800;">{% trans "Review Queue is Clear" %}</h4>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 💸 Payout Requests Pipeline -->
+  <div class="premium-about-card reveal" style="padding: 0; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); margin-bottom: 4rem; overflow: hidden;">
+    <div style="padding: 3rem; border-bottom: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 1.8rem; font-weight: 950; margin: 0;">💸 {% trans "Payout Disbursement Pipeline" %}</h3>
+      <span style="padding: 0.8rem 1.5rem; border-radius: 15px; background: rgba(79, 70, 229, 0.1); color: var(--primary); font-weight: 900; font-size: 0.9rem;">
+        {{ payout_requests.count }} {% trans "Action Items" %}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      {% if payout_requests %}
+      <table class="dashboard-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="text-align: left; background: rgba(79, 70, 229, 0.02);">
+            <th class="admin-th">{% trans "ID" %}</th>
+            <th class="admin-th">{% trans "Entity" %}</th>
+            <th class="admin-th">{% trans "Amount" %}</th>
+            <th class="admin-th">{% trans "Phase" %}</th>
+            <th class="admin-th">{% trans "Command" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pr in payout_requests %}
+          <tr class="admin-tr">
+            <td style="padding: 2rem 2.5rem; font-weight: 800; color: var(--gray-400);">#{{ pr.id }}</td>
+            <td style="padding: 2rem 2.5rem;">
+                <div style="font-weight: 850;">{{ pr.wallet.user.username }}</div>
+                <div style="font-size: 0.8rem; color: var(--gray-400);">{{ pr.payout_method_details|truncatechars:30 }}</div>
+            </td>
+            <td style="padding: 2rem 2.5rem; font-weight: 950; color: var(--primary);">{{ pr.amount }} EGP</td>
+            <td style="padding: 2rem 2.5rem;">
+              <span class="status-badge-custom" style="
+                {% if pr.status == 'completed' %}background: #dcfce7; color: #166534;
+                {% elif pr.status == 'rejected' %}background: #fee2e2; color: #991b1b;
+                {% else %}background: #fef9c3; color: #854d0e;{% endif %}">
+                {{ pr.get_status_display }}
+              </span>
+            </td>
+            <td style="padding: 2rem 2.5rem;">
+               <div style="display: flex; gap: 1rem;">
+                  {% if pr.status == 'pending' %}
+                  <form method="post" action="{% url 'admin_approve_payout' pr.id %}" style="display: flex; gap: 0.8rem;">
+                    {% csrf_token %}
+                    <input type="text" name="notes" placeholder="{% trans 'Notes' %}" class="admin-input-small">
+                    <button type="submit" name="action" value="approve" class="admin-btn-action-p">{% trans "Approve" %}</button>
+                    <button type="submit" name="action" value="reject" class="admin-btn-action-r">{% trans "Reject" %}</button>
+                  </form>
+                  {% elif pr.status == 'approved' %}
+                  <form method="post" action="{% url 'admin_approve_payout' pr.id %}" style="display: flex; gap: 0.8rem;">
+                    {% csrf_token %}
+                    <input type="text" name="notes" placeholder="{% trans 'Txn ID' %}" class="admin-input-small">
+                    <button type="submit" name="action" value="complete" class="admin-btn-action-g">{% trans "Mark Paid" %}</button>
+                  </form>
+                  {% endif %}
+               </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 📦 Order Management Hub -->
+  <div class="premium-about-card reveal" style="padding: 0; border-radius: 40px; border: 1.5px solid var(--border-color); background: var(--card-bg); margin-top: 4rem; overflow: hidden;">
+    <div style="padding: 3rem; border-bottom: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 1.8rem; font-weight: 950; margin: 0;">📦 {% trans "Platform Order Logistics" %}</h3>
+      <span style="padding: 0.8rem 1.5rem; border-radius: 15px; background: rgba(79, 70, 229, 0.1); color: var(--primary); font-weight: 900; font-size: 0.9rem;">
+        {{ orders.count }} {% trans "Managed Records" %}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="dashboard-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="text-align: left; background: rgba(79, 70, 229, 0.02);">
+            <th class="admin-th">{% trans "Order" %}</th>
+            <th class="admin-th">{% trans "Client" %}</th>
+            <th class="admin-th">{% trans "Phase" %}</th>
+            <th class="admin-th">{% trans "Update" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr class="admin-tr">
+            <td style="padding: 2rem 2.5rem; font-weight: 800;">#{{ order.id }}</td>
+            <td style="padding: 2rem 2.5rem; font-weight: 850;">{{ order.user.username }}</td>
+            <td style="padding: 2rem 2.5rem;">
+                <span class="status-indicator">{{ order.get_status_display }}</span>
+            </td>
+            <td style="padding: 2rem 2.5rem;">
+              <form method="post" action="{% url 'update_order_status' order.id %}" style="display: flex; gap: 0.8rem;">
                 {% csrf_token %}
-                <select class="status" name="status">
+                <select name="status" class="admin-select-sm">
                   {% for key, value in status_choices %}
                     <option value="{{ key }}" {% if key == order.status %}selected{% endif %}>{{ value }}</option>
                   {% endfor %}
                 </select>
-                <button type="submit" class="btn-small">{% trans "Update" %}</button>
+                <button type="submit" class="admin-btn-action">{% trans "Go" %}</button>
               </form>
             </td>
-            <td><a href="mailto:{{ order.user.email }}" class="text-link">{% trans "Contact" %}</a></td>
-            <td><a href="{% url 'order_detail' order.id %}" class="text-link">{% trans "Details" %}</a></td>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
 </div>
+
+<style>
+.admin-select { width: 100%; padding: 1.2rem; border-radius: 18px; border: 1.5px solid var(--border-color); background: var(--card-bg); font-weight: 800; color: var(--gray-900); outline: none; }
+.admin-select-sm { padding: 0.6rem 1rem; border-radius: 10px; border: 1.2px solid var(--border-color); background: var(--card-bg); font-weight: 700; font-size: 0.85rem; outline: none; }
+.admin-th { padding: 2rem 2.5rem; font-weight: 800; text-transform: uppercase; font-size: 0.8rem; color: var(--gray-500); letter-spacing: 1px; }
+.admin-tr { border-bottom: 1px solid var(--border-color); transition: background 0.3s ease; }
+.admin-tr:hover { background: rgba(79, 70, 229, 0.01); }
+.admin-btn { padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 900; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem; border: none; }
+.admin-btn-approve { background: #10b981; color: white; }
+.admin-btn-reject { background: transparent; color: #ef4444; border: 1.5px solid #ef4444; }
+.status-badge-custom { padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+.admin-input-small { padding: 0.6rem 1rem; border-radius: 10px; border: 1.2px solid var(--border-color); background: var(--card-bg); font-size: 0.8rem; width: 120px; }
+.admin-btn-action-p { background: #f59e0b; color: white; border: none; border-radius: 10px; padding: 0.6rem 1rem; font-weight: 800; }
+.admin-btn-action-r { background: #ef4444; color: white; border: none; border-radius: 10px; padding: 0.6rem 1rem; font-weight: 800; }
+.admin-btn-action-g { background: #10b981; color: white; border: none; border-radius: 10px; padding: 0.6rem 1.2rem; font-weight: 800; }
+.admin-btn-action { background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0.6rem 1.2rem; font-weight: 800; }
+.status-indicator { font-weight: 800; font-size: 0.85rem; color: var(--primary); background: rgba(79, 70, 229, 0.05); padding: 0.4rem 0.8rem; border-radius: 8px; }
+
+html.dark-mode .premium-about-card { background: rgba(25, 25, 25, 0.9) !important; }
+html.dark-mode .section-heading, html.dark-mode h3, html.dark-mode h4, html.dark-mode td { color: #ffffff !important; }
+html.dark-mode .admin-select, html.dark-mode .admin-select-sm, html.dark-mode .admin-input-small { background: #1a1a1a !important; color: #fff !important; border-color: #333 !important; }
+</style>
 {% endblock %}

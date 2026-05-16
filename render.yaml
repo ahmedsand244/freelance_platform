@@ -1,0 +1,47 @@
+services:
+  # 1. Redis Service (for Celery and Channels)
+  - type: redis
+    name: khamsat-redis
+    ipAllowList: []
+    plan: free
+
+  # 2. Web Service (Daphne & Celery Worker)
+  - type: web
+    name: khamsat-web
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "./start.sh"
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: khamsat-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: khamsat-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: khamsat-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: khamsat-redis
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+
+  # 3. PostgreSQL Database
+  - type: psql
+    name: khamsat-db
+    databaseName: khamsatdb
+    user: khamsatuser
+    plan: free
