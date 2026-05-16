@@ -74,11 +74,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'khamsat.wsgi.application'
 ASGI_APPLICATION = 'khamsat.asgi.application'
 
+REDIS_URL = config("REDIS_URL", default="redis://127.0.0.1:6379")
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [REDIS_URL],
         },
     },
 }
@@ -181,9 +183,16 @@ PLATFORM_COMMISSION_PERCENTAGE = config("PLATFORM_COMMISSION_PERCENTAGE", defaul
 PENDING_RELEASE_DAYS = config("PENDING_RELEASE_DAYS", default=14, cast=int)
 MIN_WITHDRAWAL_AMOUNT = config("MIN_WITHDRAWAL_AMOUNT", default=500.0, cast=float)
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://nobody-invisible-circular-affiliates.trycloudflare.com',
-]
+# ========= RENDER DEPLOYMENT =========
+RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default='')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS = [f'https://{RENDER_EXTERNAL_HOSTNAME}']
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
 
 GEMINI_API_KEY = config('GEMINI_API_KEY', default="")
 
