@@ -30,6 +30,7 @@ urlpatterns += i18n_patterns(
     path('en/accounts/google/login/', force_google_login),
 )
 
-# الملفات الثابتة والميديا
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+# الملفات الثابتة والميديا - في Production تخدمها Whitenoise تلقائيًا
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -126,6 +126,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'pages' / 'static']
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Whitenoise: Serve static files with compression and cache-busting
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Allow missing files in manifest (prevent 500 errors on collectstatic)
+WHITENOISE_MANIFEST_STRICT = False
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -222,7 +227,9 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    # Railway handles SSL termination at the proxy level - do NOT redirect
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
